@@ -86,7 +86,10 @@ class Material:
         material_type   The type of the material. A string representing
             the material name.
         material_tier   A tier representing how powerful the material
-            is compared to others"""
+            is compared to others
+        name            The same as material type (references the same
+                            internal variable)
+        valid_slots       A list of valid slot_ids for this material"""
 
     def __init__(self, material_type: str = None,
                  material_tier: float = 0,
@@ -111,30 +114,30 @@ class Material:
         """
         self._material_type = material_type
         self._material_tier = material_tier
-        self._valid = []
+        self.valid = []
         try:
             kwargs['slots']
         except KeyError:
             kwargs['slots'] = None
         if kwargs['slots'] is not None\
                 and isinstance(kwargs['slots'], list):
-            self._valid = kwargs['slots'].copy()
+            self.valid = kwargs['slots'].copy()
         else:
             for arg in args:
                 if isinstance(arg, str) and "all" in str:
                     for i in range(0, len(Slot.slots)):
-                        self._valid.append(i)
+                        self.valid.append(i)
                 if isinstance(arg, Slot):
-                    self._valid.append(Slot.slot_id)
+                    self.valid.append(Slot.slot_id)
                 if isinstance(arg, list):
                     for e in arg:
                         if isinstance(e, Slot):
-                            self._valid.append(e)
+                            self.valid.append(e)
                 if isinstance(arg, int) and arg in Slot.slots.values():
-                    self._valid.append(arg)
+                    self.valid.append(arg)
             temp = []
-            [temp.append(x) for x in self._valid if x not in temp]
-            self._valid = temp.copy()
+            [temp.append(x) for x in self.valid if x not in temp]
+            self.valid = temp.copy()
 
     @property
     def material_type(self) -> str:
@@ -142,6 +145,17 @@ class Material:
 
     @material_type.setter
     def material_type(self, value: str):
+        if isinstance(value, str):
+            self._material_type = value
+        else:
+            raise ValueError("Material type must be a string.")
+
+    @property
+    def name(self) -> str:
+        return self._material_type
+
+    @name.setter
+    def name(self, value: str):
         if isinstance(value, str):
             self._material_type = value
         else:
@@ -158,11 +172,19 @@ class Material:
         else:
             raise ValueError("Material tier must be a non-negative integer.")
 
+    @property
+    def valid_slots(self) -> list:
+        r = []
+        for s in self.valid:
+            r.append(s.slot_id)
+        print(r)
+        return r
+
     def __str__(self) -> str:
         out = f"Material Type: {self._material_type}, " \
                f"Material Tier: {self._material_tier}, " \
                f"Valid for: "
-        for m in self._valid:
+        for m in self.valid:
             out += str(m)+", "
         return out[0:len(out)-2]
 
@@ -198,6 +220,10 @@ class Equipment:
         self._b_constitution = kwargs['constitution']
         self._b_luck = kwargs['luck']
         self._material = kwargs['material']
+        if self._slot.slot_id not in self.material.valid_slots:
+            raise ValueError("this type is not valid for this slot "
+                             f"slot_id: {self.slot.slot_id}"
+                             f"valid_ids: {self.material.valid}")
 
     @property
     def name(self) -> str:

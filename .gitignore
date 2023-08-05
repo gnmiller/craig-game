@@ -4,3 +4,6 @@
 ^__*
 __pycache__/
 features.txt
+*.json
+./characters/*
+./characters

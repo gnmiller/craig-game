@@ -325,6 +325,9 @@ class Level:
         else:
             raise ValueError("Exp to level must be a positive integer > 0.")
 
+    def __str__(self) -> str:
+        return str(self.cur_level)
+
 
 class Character:
     """The hero of the story! Contains all the important information.
