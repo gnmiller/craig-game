@@ -7,3 +7,4 @@ features.txt
 *.json
 ./characters/*
 ./characters
+*.sql
