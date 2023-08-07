@@ -23,23 +23,22 @@ class character_Commands(commands.Cog):
                         ctx: discord.ApplicationContext,
                         name: str,
                         c_name: discord.Option(str, description="choose your class", autocomplete=discord.utils.basic_autocomplete(get_class_types))):
-        if get_char_count(ctx.author.id) < 10:
-            if get_char_count(ctx.author.id) == 0:
-                os.makedirs(f"/{ctx.author.id}/")
-            if os.path.isfile(f"{ctx.author.id}/{name}"):
+        dir_path = f"./characters/{ctx.author.id}/"
+        char_file = f"{dir_path}/{name}"
+        if get_char_count(dir_path) < 10:
+            if get_char_count(dir_path) == 0:
+                os.makedirs(dir_path)
+            if os.path.isfile(char_file):
                 await ctx.respond("That character already exists!")
-                with open(f"./{ctx.author.id}/{name}", "rb") as f:
+                with open(char_file, "rb") as f:
                     new_char = pickle.load(f)
-                print(new_char)
                 return new_char
             my_class = _get_class(c_name)
             new_char = character.Character(name=name, class_choice=my_class)
-            file_name = f"{ctx.author.id}/{name}"
-            with open(f"./{file_name}", "w+b") as f:
+            with open(char_file, "w+b") as f:
                 pickle.dump(new_char, f)
             f.close()
-            await ctx.respond(str(new_char))
-            print(new_char)
+            await ctx.respond(f"New character named {name} created!\n{str(new_char)}")
             return new_char
         else:
             await ctx.respond("you have too many characters buddy!")

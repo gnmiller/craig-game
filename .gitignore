@@ -5,6 +5,6 @@
 __pycache__/
 features.txt
 *.json
-./characters/*
-./characters
+characters/*
+characters
 *.sql
