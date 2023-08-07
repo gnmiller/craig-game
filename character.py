@@ -2,6 +2,9 @@ import item
 import math
 
 
+import pdb
+
+
 class Stats:
     """Wrapper for character stats.
 
@@ -51,71 +54,71 @@ class Stats:
 
     #  Agility Code
     @property
-    def strength(self) -> int:
+    def agility(self) -> int:
         return self._agility
 
-    @strength.setter
-    def strength(self, val: int) -> None:
+    @agility.setter
+    def agility(self, val: int) -> None:
         self._agility = val
 
-    @strength.deleter
-    def strength(self) -> None:
+    @agility.deleter
+    def agility(self) -> None:
         del self._agility
     #  End Agility
 
     #  Intellect Code
     @property
-    def strength(self) -> int:
+    def intellect(self) -> int:
         return self._intellect
 
-    @strength.setter
-    def strength(self, val: int) -> None:
+    @intellect.setter
+    def intellect(self, val: int) -> None:
         self._intellect = val
 
-    @strength.deleter
-    def strength(self) -> None:
+    @intellect.deleter
+    def intellect(self) -> None:
         del self._intellect
     #  End Intellect
 
     # Charisma Code
     @property
-    def strength(self) -> int:
+    def charisma(self) -> int:
         return self._charisma
 
-    @strength.setter
-    def strength(self, val: int) -> None:
+    @charisma.setter
+    def charisma(self, val: int) -> None:
         self._charisma = val
 
-    @strength.deleter
-    def strength(self) -> None:
+    @charisma.deleter
+    def charisma(self) -> None:
         del self._charisma
     #  End Charisma
 
     #  Constitution Code
     @property
-    def strength(self) -> int:
+    def constitution(self) -> int:
         return self._constitution
 
-    @strength.setter
-    def strength(self, val: int) -> None:
+    @constitution.setter
+    def constitution(self, val: int) -> None:
         self._constitution = val
 
-    @strength.deleter
-    def strength(self) -> None:
+    @constitution.deleter
+    def constitution(self) -> None:
         del self._constitution
     #  End Constitution
 
     #  Luck Code
     @property
-    def strength(self) -> int:
+    def luck(self) -> int:
         return self._luck
 
-    @strength.setter
-    def strength(self, val: int) -> None:
+    @luck.setter
+    def luck(self, val: int) -> None:
         self._luck = val
 
-    @strength.deleter
-    def strength(self) -> None:
+    @luck.deleter
+    def luck(self) -> None:
         del self._luck
     #  End Luck
 
@@ -184,6 +187,7 @@ class Gear:
         self._trinket = None
         self._weapon = None  # Main-hand weapon
         self._oh = None  # Off-hand weapon
+        self._index = -1
 
     # Define the property getters and setters
     @property
@@ -261,6 +265,39 @@ class Gear:
     def oh(self, item: item.Equipment):
         self._oh = item
 
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self._index += 1
+        match self._index:
+            case 0:
+                return self.head
+            case 1:
+                return self.chest
+            case 2:
+                return self.arms
+            case 3:
+                return self.legs
+            case 4:
+                return self.hands
+            case 5:
+                if len(self._rings) <= 0:
+                    return None
+                return self._rings[0]
+            case 6:
+                if len(self._rings) <= 0:
+                    return None
+                return self._rings[1]
+            case 7:
+                return self.trinket
+            case 8:
+                return self.weapon
+            case 9:
+                return self.oh
+            case _:
+                raise StopIteration
+
 
 class Level:
     """A container representing a character's level.
@@ -329,6 +366,217 @@ class Level:
         return str(self.cur_level)
 
 
+class Health:
+    def __init__(self, con_hp: int = 100, base_hp: int = 100):
+        self.base_hp = base_hp
+        self.max_hp = con_hp + self.base_hp
+        self.cur_hp = self.max_hp
+
+    @property
+    def hp(self) -> int:
+        return (self.cur_hp, self.max_hp)
+
+    @hp.setter
+    def hp(self, change: int = 0) -> int:
+        self.cur_hp += change
+        return self.cur_hp
+
+    def recalc_hp(self, s: Stats = None):
+        """Recalculate the max and current HP given a new stat block.
+
+        Current HP is set as the percentage of the new max HP."""
+        if not isinstance(s, Stats):
+            raise TypeError("Stats object not passed to recalc_hp")
+        else:
+            pct_hp = self.cur_hp/self.max_hp
+            self.max_hp = self.base_hp + s.constitution*10
+            self.cur_hp = int(self.max_hp * pct_hp)
+            return (self.cur_hp, self.max_hp)
+
+    def __str__(self):
+        return f"{self.cur_hp} / {self.max_hp}"
+
+
+class bt_Class:
+    def __init__(self, name: str = None):
+        self.name = name
+        self.stats = Stats()
+        match name:
+            case 'warrior':
+                return
+            case 'rogue':
+                return
+            case 'wizard':
+                return
+            case 'trader':
+                return
+            case 'paladin':
+                return
+            case 'villager':
+                return
+            case _:
+                return
+
+    @property
+    def main_stat(self):
+        return self.stats.strength
+
+    def get_gear_stats(self, g: Gear = Gear()) -> []:
+        ret = []
+        for i in g:
+            if i is None:
+                continue
+            ret.append(i.strength)
+        return ret
+
+    def attack_bonus(self, g: Gear = Gear()) -> float:
+        if "sword" in g.weapon.name:
+            return 1.1
+        else:
+            return 1.0
+
+    def __str__(self):
+        return self.name
+
+
+class Warrior(bt_Class):
+    def __init__(self):
+        super.__init__()
+        self.name = "warrior"
+        return
+
+    @property
+    def main_stat(self):
+        return self.stats.strength
+
+    def get_gear_stats(self, g: Gear = Gear()):
+        ret = []
+        for i in g:
+            ret.append(i.strength)
+        return ret
+
+    def attack_bonus(self, g: Gear = Gear()) -> float:
+        if "sword" in g.weapon.name:
+            return 1.1
+        else:
+            return 1.0
+
+
+class Rogue(bt_Class):
+    def __init__(self):
+        super.__init__()
+        self.name = "rogue"
+        return
+
+    @property
+    def main_stat(self):
+        return self.stats.agility
+
+    def get_gear_stats(self, g: Gear = Gear()):
+        ret = []
+        for i in g:
+            ret.append(i.agility)
+        return ret
+
+    def attack_bonus(self, g: Gear = Gear()) -> float:
+        if "bow" in g.weapon.name:
+            return 1.1
+        else:
+            return 1.0
+
+
+class Wizard(bt_Class):
+    def __init__(self):
+        self.name = "wizard"
+        return
+
+    @property
+    def main_stat(self):
+        return self.stats.intellect
+
+    def get_gear_stats(self, g: Gear = Gear()):
+        ret = []
+        for i in g:
+            ret.append(i.intellect)
+        return ret
+
+    def attack_bonus(self, g: Gear = Gear()) -> float:
+        if "staff" in g.weapon.name:
+            return 1.1
+        else:
+            return 1.0
+
+
+class Trader(bt_Class):
+    def __init__(self):
+        super.__init__()
+        self.name = "trader"
+        return
+
+    @property
+    def main_stat(self):
+        return self.stats.charisma
+
+    def get_gear_stats(self, g: Gear = Gear()):
+        ret = []
+        for i in g:
+            ret.append(i.charisma)
+        return ret
+
+    def attack_bonus(self, g: Gear = Gear()) -> float:
+        if "axe" in g.weapon.name:
+            return 1.1
+        else:
+            return 1.0
+
+
+class Paladin(bt_Class):
+    def __init__(self):
+        super.__init__()
+        self.name = "paladin"
+        return
+
+    @property
+    def main_stat(self):
+        return self.stats.constitution
+
+    def get_gear_stats(self, g: Gear = Gear()):
+        ret = []
+        for i in g:
+            ret.append(i.constitution)
+        return ret
+
+    def attack_bonus(self, g: Gear = Gear()) -> float:
+        # if isinstance(g.weapon, item.Mace):
+        if "mace" in g.weapon.name:
+            return 1.1
+        else:
+            return 1.0
+
+
+class Villager(bt_Class):
+    def __init__(self):
+        super.__init__()
+        self.name = "villager"
+        return
+
+    @property
+    def main_stat(self):
+        return self.stats.luck
+
+    def get_gear_stats(self, g: Gear = Gear()):
+        ret = []
+        for i in g:
+            ret.append(i.luck)
+        return ret
+
+    def attack_bonus(self, g: Gear = Gear()) -> float:
+        if "pan" in g.weapon.name:
+            return 1.1
+        else:
+            return 1.0
+
+
 class Character:
     """The hero of the story! Contains all the important information.
 
@@ -348,12 +596,13 @@ class Character:
                  level: Level = Level(0, 0),
                  stat_block: Stats = Stats(),
                  gear_block: Gear = Gear(),
-                 bt_class: str = "none"):
+                 bt_class: bt_Class = bt_Class()):
         self._level = level
         self._name = name
         self._stats = stat_block
         self._gear = gear_block
         self._bt_class = bt_class
+        self.hp = Health(stat_block.constitution*10)
         return
 
     #  Level
@@ -388,11 +637,13 @@ class Character:
         return self._stats
 
     @stats.setter
-    def stats(self, value: Gear):
-        if isinstance(value, Gear):
-            self._stats = value
+    def stats(self, value: Stats):
+        if isinstance(value, Stats):
+            if self._stats.constitution != value.constitution:
+                self.hp.recalc_hp(value)
+            self._bt_class.stats = value
         else:
-            raise ValueError("Stats must be a Gear.")
+            raise ValueError("Stats must be a Stats.")
     #  End Stats
 
     #  Gear
@@ -408,8 +659,35 @@ class Character:
             raise ValueError("Gear must be a Gear.")
     #  End Gear
 
+    # ATK & DEF
+    @property
+    def attack(self) -> int:
+        base = 10
+        # (10 + (main_stat + gear_stats) * .5)
+        main_stat = self._bt_class.main_stat
+        gear_stats = self._bt_class.get_gear_stats(self.gear)
+        attack = 0
+        if self.gear.weapon is not None:
+            bonus = self._bt_class.attack_bonus(self.gear)
+        else:
+            bonus = 1.0
+        for g in gear_stats:
+            attack += g
+        return int((base + (main_stat + attack) * .5)) * bonus
+
+    @property
+    def defense(self) -> int:
+        base = 8
+        main_stat = self._bt_class.main_stat
+        gear_stats = self._bt_class.get_gear_stats(self.gear)
+        defense = 0
+        for g in gear_stats:
+            defense += g
+        return (base + (main_stat + defense) * .15)
+
     def __str__(self) -> str:
         return f"Character: {self._name}\n" \
                f"Class: {self._bt_class}\n"\
+               f"Health: {self.hp}\n"\
                f"Level: {self._level}\n" \
-               f"Stats: {self._stats}"
+               f"Stats: {self._bt_class.stats}"
