@@ -2,9 +2,6 @@ import item
 import math
 
 
-import pdb
-
-
 class Stats:
     """Wrapper for character stats.
 
@@ -415,11 +412,15 @@ class bt_Class:
             case 'villager':
                 return
             case _:
-                return
+                raise TypeError("Invalid class choice!")
 
     @property
     def main_stat(self):
         return self.stats.strength
+
+    @property
+    def def_stats(self):
+        return Stats()
 
     def get_gear_stats(self, g: Gear = Gear()) -> []:
         ret = []
@@ -441,8 +442,8 @@ class bt_Class:
 
 class Warrior(bt_Class):
     def __init__(self):
-        super.__init__()
         self.name = "warrior"
+        super().__init__(self.name)
         return
 
     @property
@@ -455,6 +456,11 @@ class Warrior(bt_Class):
             ret.append(i.strength)
         return ret
 
+    @property
+    def def_stats(self):
+        return Stats(strength=3, agility=1, intellect=1,
+                     charisma=1, con=1, luck=1)
+
     def attack_bonus(self, g: Gear = Gear()) -> float:
         if "sword" in g.weapon.name:
             return 1.1
@@ -464,8 +470,8 @@ class Warrior(bt_Class):
 
 class Rogue(bt_Class):
     def __init__(self):
-        super.__init__()
         self.name = "rogue"
+        super().__init__(self.name)
         return
 
     @property
@@ -478,6 +484,11 @@ class Rogue(bt_Class):
             ret.append(i.agility)
         return ret
 
+    @property
+    def def_stats(self):
+        return Stats(strength=3, agility=1, intellect=1,
+                     charisma=1, con=1, luck=1)
+
     def attack_bonus(self, g: Gear = Gear()) -> float:
         if "bow" in g.weapon.name:
             return 1.1
@@ -488,6 +499,7 @@ class Rogue(bt_Class):
 class Wizard(bt_Class):
     def __init__(self):
         self.name = "wizard"
+        super().__init__(self.name)
         return
 
     @property
@@ -500,6 +512,11 @@ class Wizard(bt_Class):
             ret.append(i.intellect)
         return ret
 
+    @property
+    def def_stats(self):
+        return Stats(strength=3, agility=1, intellect=1,
+                     charisma=1, con=1, luck=1)
+
     def attack_bonus(self, g: Gear = Gear()) -> float:
         if "staff" in g.weapon.name:
             return 1.1
@@ -509,8 +526,8 @@ class Wizard(bt_Class):
 
 class Trader(bt_Class):
     def __init__(self):
-        super.__init__()
         self.name = "trader"
+        super().__init__(self.name)
         return
 
     @property
@@ -523,6 +540,11 @@ class Trader(bt_Class):
             ret.append(i.charisma)
         return ret
 
+    @property
+    def def_stats(self):
+        return Stats(strength=3, agility=1, intellect=1,
+                     charisma=1, con=1, luck=1)
+
     def attack_bonus(self, g: Gear = Gear()) -> float:
         if "axe" in g.weapon.name:
             return 1.1
@@ -532,8 +554,8 @@ class Trader(bt_Class):
 
 class Paladin(bt_Class):
     def __init__(self):
-        super.__init__()
         self.name = "paladin"
+        super().__init__(self.name)
         return
 
     @property
@@ -546,6 +568,11 @@ class Paladin(bt_Class):
             ret.append(i.constitution)
         return ret
 
+    @property
+    def def_stats(self):
+        return Stats(strength=3, agility=1, intellect=1,
+                     charisma=1, con=1, luck=1)
+
     def attack_bonus(self, g: Gear = Gear()) -> float:
         # if isinstance(g.weapon, item.Mace):
         if "mace" in g.weapon.name:
@@ -556,8 +583,8 @@ class Paladin(bt_Class):
 
 class Villager(bt_Class):
     def __init__(self):
-        super.__init__()
         self.name = "villager"
+        super().__init__(self.name)
         return
 
     @property
@@ -569,6 +596,11 @@ class Villager(bt_Class):
         for i in g:
             ret.append(i.luck)
         return ret
+
+    @property
+    def def_stats(self):
+        return Stats(strength=3, agility=1, intellect=1,
+                     charisma=1, con=1, luck=1)
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
         if "pan" in g.weapon.name:
@@ -596,12 +628,12 @@ class Character:
                  level: Level = Level(0, 0),
                  stat_block: Stats = Stats(),
                  gear_block: Gear = Gear(),
-                 bt_class: bt_Class = bt_Class()):
+                 class_choice: bt_Class = bt_Class('warrior')):
         self._level = level
         self._name = name
-        self._stats = stat_block
         self._gear = gear_block
-        self._bt_class = bt_class
+        self._bt_class = class_choice
+        self._bt_class.stats = stat_block
         self.hp = Health(stat_block.constitution*10)
         return
 
