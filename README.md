@@ -1,0 +1,1 @@
+Simple 'idle' style RPG for Discord.
