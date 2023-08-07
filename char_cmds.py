@@ -25,7 +25,7 @@ class character_Commands(commands.Cog):
                         c_name: discord.Option(str, description="choose your class", autocomplete=discord.utils.basic_autocomplete(get_class_types))):
         if get_char_count(ctx.author.id) < 10:
             if get_char_count(ctx.author.id) == 0:
-                os.makedirs(f"{ctx.author.id}/")
+                os.makedirs(f"/{ctx.author.id}/")
             if os.path.isfile(f"{ctx.author.id}/{name}"):
                 await ctx.respond("That character already exists!")
                 with open(f"./{ctx.author.id}/{name}", "rb") as f:
