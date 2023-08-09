@@ -122,6 +122,9 @@ class Stats:
             raise StopIteration
 
     def __eq__(self, other):
+        """Return equals if other is a `character.Stats` and it has equal properties of
+        strength, agility, intellect, charisma, constitution, and luck otherwise will 
+        return False"""
         if isinstance(other, Stats):
             return self.strength == other.strength and \
                 self.agility == other.agility and \
@@ -276,6 +279,9 @@ class Gear:
                 raise StopIteration
 
     def __eq__(self, other):
+        """Checks each `item.Item` in the `character.Gear` individually for euality.
+        If other is a `character.Gear` and each item is equal will return True otherwise
+        returns False"""
         if not isinstance(other, Gear):
             return False
         return (self.head == other.head and
@@ -288,10 +294,9 @@ class Gear:
                 self.weapon == other.weapon and
                 self.oh == other.oh)
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __str__(self):
+        """Return a string representation of the Gear object. Each `item.Item` in the 
+        `character.Gear` is evaluated individually."""
         if self.rings == []:
             ring_str = None
         else:
@@ -375,6 +380,8 @@ class Level:
         return str(self.cur_level)
 
     def __eq__(self, other=None) -> bool:
+        """Returns equal if a character.Level is passed in and the `character.Level.cur_level`
+        are equal."""
         if not isinstance(other, Level):
             return False
         return self.cur_level == other.cur_level
@@ -382,6 +389,12 @@ class Level:
 
 class Health:
     def __init__(self, con_hp: int = 100, base_hp: int = 90):
+        """Create a new `character.Health` object with `con_hp` and `base_hp` values.
+
+        Parameters
+        ----------
+        con_hp  How much HP the character is getting from Constitution (default 100)
+        base_hp The base HP for the given class (default 100)"""
         self.base_hp = base_hp
         self.max_hp = con_hp + self.base_hp
         self.cur_hp = self.max_hp
@@ -398,7 +411,13 @@ class Health:
     def recalc_hp(self, s: Stats = None):
         """Recalculate the max and current HP given a new stat block.
 
-        Current HP is set as the percentage of the new max HP."""
+        Current HP is set as the percentage of the new max HP. This would
+        generally be used when leveling up a charcter or otherwise adjusting
+        their constution (like when equipping gear with +CON).
+        
+        Parameters
+        ----------
+        s   The new stat block to calculate HP based on"""
         if not isinstance(s, Stats):
             raise TypeError("Stats object not passed to recalc_hp")
         else:
@@ -411,17 +430,24 @@ class Health:
         return f"{self.cur_hp} / {self.max_hp}"
 
     def __eq__(self, other=None) -> bool:
+        """Returns equal if other is a `character.Health` and the cur_hp and base_hp
+        values are the same for both objects."""
         if not isinstance(other, Health):
             return False
         return self.cur_hp == other.cur_hp and \
             self.base_hp == other.base_hp
 
-    def __ne__(self, other=None) -> None:
-        return not self.__eq__(other)
-
 
 class bt_Class:
     def __init__(self, name: str = None, stats: Stats = Stats()):
+        """Create a new bt_class object with its name as name and its stats as stats.
+        
+        Parameters
+        ----------
+        name    The name of the class to use. A list of current classes is
+                    available in `config.data['classes']`
+        stats   The `character.Stats` object for this character. If None is specified
+                    the default constructor with all stats as 0 is called."""
         self.name = name
         self.stats = stats
         match name:
@@ -442,13 +468,23 @@ class bt_Class:
 
     @property
     def main_stat(self):
+        """The character's primary attribute."""
         return self.stats.strength
 
     @property
     def def_stats(self):
+        """The default stat array for a class."""
         return Stats()
 
     def get_gear_stats(self, g: Gear = Gear()) -> []:
+        """Return the bonuses for a classes main stat from gear.
+
+        Since only main stat will (currently) affect anything we only
+        check the classes 'main' stat.
+
+        Parameters
+        ----------
+        g The characters `character.Gear` object to inspect"""
         ret = []
         for i in g:
             if i is None:
@@ -457,7 +493,15 @@ class bt_Class:
         return ret
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
-        if "sword" in g.weapon.name:
+        """Check if the character is wielding their preferred weapon.
+
+        Returns a float based on if the character is wielding the class's preferred weapon type.
+        If the weapon is of the correct type 1.1 is returned. Otherwise 1.0 is returned.
+
+        Parameters
+        ----------
+        g   The gear object for the character"""
+        if "sword" in g.weapon.name:  # make this more dynamic of a check?
             return 1.1
         else:
             return 1.0
@@ -625,8 +669,6 @@ class Villager(bt_Class):
         return self.stats.luck
 
     def get_gear_stats(self, g: Gear = Gear()):
-        """Takes a `character.Gear` object as an argument and returns a list of
-            luck stats from each in the Gear object."""
         ret = []
         for i in g:
             ret.append(i.luck)
@@ -634,15 +676,10 @@ class Villager(bt_Class):
 
     @property
     def def_stats(self):
-        """Returns a `character.Stats` object with the class' default stats.
-            IE Strength: 1, Agility: 1, Intellect: 1, Charisma: 1, Con: 1, Luck: 3"""
         return Stats(strength=1, agility=1, intellect=1,
                      charisma=1, con=1, luck=3)
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
-        """Takes a `character.Gear` object as an argument adn returns a float
-            If the weapon name in the Gear object is pan the value is 1.1
-            otherwise the value is 1.0"""
         if "pan" in g.weapon.name:
             return 1.1
         else:
@@ -661,18 +698,40 @@ class Character:
         name        Who are you?
         level       `character.Level` for this character
         stats       `character.Stats` for this character
-        gear        `Character.Gear` for this character
+        gear        `character.Gear` for this character
+        health      `chararacter.Health` for this character
         bt_class    class (NYI)
         """
     def __init__(self, name: str,
                  level: Level = Level(0, 0),
                  gear_block: Gear = Gear(),
-                 class_choice: bt_Class = bt_Class('warrior')):
+                 class_choice: bt_Class = bt_Class('warrior'),
+                 health: Health = None):
+        """Construct a new character object
+
+        All statistics for a character can be supplied in the constructor.
+
+        self.hp is derived from the `character.bt_class` but can also be
+        provided in the constructor if the default values are not sufficient.
+
+        Parameters
+        ----------
+        name        The name of the new character
+        level       The level to use for the new character. By default all
+                        characters will start with level 0 and 0 exp.
+        stats      The stat block to use for the character. Provided 
+                        by `bt_class.__init__()` if not specified.
+        gear        The `character.Gear` object to use for this character.
+                        New characters generally will be naked, with no items equipped.
+        bt_class    The character's class"""
         self._level = level
         self._name = name
         self._gear = gear_block
         self._bt_class = class_choice
-        self.hp = Health(self._bt_class.stats.constitution*10)
+        if health is not None:
+            self.hp = health
+        else:
+            self.hp = Health(self._bt_class.stats.constitution*10)
         return
 
     #  Level
@@ -732,6 +791,13 @@ class Character:
     # ATK & DEF
     @property
     def attack(self) -> int:
+        """The character's attack value.
+
+        Derived from the character's main stat (`bt_class.main_stat`),
+            and the character's gear stats (`bt_class.get_gear_stats()`).
+            
+        Additionally checks `bt_class.attack_bonus()` to see if the character
+            wielding their preferred weapon type"""
         base = 10
         # (10 + (main_stat + gear_stats) * .5)
         main_stat = self._bt_class.main_stat
@@ -747,13 +813,20 @@ class Character:
 
     @property
     def defense(self) -> int:
+        """The character's defense value.
+
+        Derived from the character's main stat (`bt_class.main_stat`),
+            and the character's gear stats (`bt_class.get_gear_stats()`).
+            
+        Additionally checks `bt_class.attack_bonus()` to see if the character
+            wielding their preferred weapon type"""
         base = 8
         main_stat = self._bt_class.main_stat
         gear_stats = self._bt_class.get_gear_stats(self.gear)
         defense = 0
         for g in gear_stats:
             defense += g
-        return (base + (main_stat + defense) * .15)
+        return int(base + (main_stat + defense) * .15)
 
     #  character.Character internal/inherited funcs #
 
@@ -777,10 +850,9 @@ class Character:
                f"Stats\n------\n{stat_str}\n"
 
     def __eq__(self, other) -> bool:
+        """Returns True if a `character.Character` is passed and the `name`, `level`,
+            `gear` and `bt_class` attributes are equal."""
         if isinstance(other, Character):
             return self.name == other.name and self.level == other.level \
                 and self.gear == other.gear and self._bt_class == other._bt_class
         return False
-
-    def __ne__(self, other) -> bool:
-        return not self.__eq__(other)

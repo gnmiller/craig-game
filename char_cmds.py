@@ -14,6 +14,22 @@ class character_Commands(commands.Cog):
                                                 'with your character(s).')
 
     def __init__(self, bot):
+        """Construct the character_Commands cog.
+        
+        This Cog provides commands for interacting with a user's characters such as
+        creating, deleting and setting the current character to use.
+        
+        By default this Cog expects that the following directories will exist:
+            ./rpg-data
+            ./rpg-data/characters/
+            ./rpg-data/active/
+        These should be created in on_ready() (or before running the bot)
+        The values for these directories can be customized in config.py by 
+        modifying their values in config.data. These are expected to be plain names
+        with no OS special characters.
+        Ex:
+            config.data['data_dir'] = 'rpg-data' GOOD
+            config.data['data_dir'] = '/rpg-data' BAD"""
         self.bot = bot
 
     def get_class_types(ctx: discord.AutocompleteContext):
@@ -31,6 +47,23 @@ class character_Commands(commands.Cog):
                      c_name: discord.Option(str, name="class_name",
                                             description="choose your class",
                                             autocomplete=discord.utils.basic_autocomplete(get_class_types))):
+        """Create a new character
+        
+        Attempt to create a new character in the associated file structure. 
+            By default characters are stored in
+            ./rpg-data/characters/<discord user_id>/<character name>.pickle.
+            This is customizable in config.data via the data_dir, char_dir, and file_ext options.
+
+        A new `character.Character` object is contructed via `create_char()` then passed to `save_char()`.
+
+        The object returned from `create_char()` is sent to the user.
+            
+        Paramters
+        ---------
+        ctx     The discord context object for the command
+        name    The character's name
+        c_name  The character's class
+        """
         try:
             new_char = create_char(ctx.author.id, name, c_name)
             save_char(ctx.author.id, new_char)
@@ -48,6 +81,17 @@ class character_Commands(commands.Cog):
                    user_id: discord.Option(str, name="user_id",
                                            description="check a specific user's characters",
                                            required=False)):
+        """List a user's characters.
+
+        Attempt to produce a listing of all character's for a given user. By default assumes
+            you want the user that sent the message's characters. A user id may be supplied to 
+            list characters for another user.
+
+        Parameters
+        ----------
+        ctx     The discord context object for the command
+        user_id The user's discord user id
+        """
         try:
             char_list = get_chars(ctx.author.id)
         except FileNotFoundError:
@@ -72,6 +116,18 @@ class character_Commands(commands.Cog):
                      ctx: discord.ApplicationContext,
                      name: discord.Option(str, description='Which character do you want to delete?',
                                           required=True)):
+        """Delete a character.
+
+        Attempt to delete a character for a given user. By default will look in
+        ./rpg-data/characters/ctx.author.id/<name>
+        for the character file. If a file with the correct name is found
+        it is removed via `del_char()`
+
+        Parameters
+        ----------
+        ctx     The discord context object for the command
+        name    The character name to remove
+        """
         try:
             deleted_char = del_char(ctx.author.id, name)
             await ctx.respond(f"Deleted character for {ctx.author.mention}"
@@ -87,6 +143,14 @@ class character_Commands(commands.Cog):
         aliases=["active"]
     )
     async def whoami(self, ctx: discord.ApplicationContext):
+        """Print out the current active character.
+
+        Looks in ./rpg-data/active/ for a file with the user's ID (ctx.author.id).
+        If none is found a FileNotFoundError will be raised.
+
+        Parameters
+        ----------
+        ctx The discord context object for the command"""
         try:
             active_char = get_active(ctx.author.id)
             await ctx.respond("```Your active character\n"
@@ -106,6 +170,12 @@ class character_Commands(commands.Cog):
                   char: discord.Option(str,
                                        description="Enter the name of the character you wish to swap to.",
                                        required=True)):
+        """Set the user's active character.
+        
+        Parameters
+        ----------
+        ctx     The discord context object for the command
+        name    The name of the character to make active"""
         try:
             active_char = get_active(ctx.author.id)
             loaded_char = load_char(ctx.author.id, char)
