@@ -177,7 +177,6 @@ class Material:
         r = []
         for s in self.valid:
             r.append(s.slot_id)
-        print(r)
         return r
 
     def __str__(self) -> str:

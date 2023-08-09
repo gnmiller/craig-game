@@ -132,7 +132,6 @@ class Stats:
         return False
 
 
-
 class Gear:
     """Container for a character's equipped items.
 
@@ -769,11 +768,12 @@ class Character:
                    f"Constitution \N{bear face}: {self._bt_class.stats.charisma}\n"\
                    f"Luck \N{shamrock}: {self._bt_class.stats.luck}\n"
 
-        return f"Character: {self._name}\n" \
+        # \u2764\ufe0f is red heart emoji
+        return f"```Character: {self._name}\n" \
                f"Class: {self._bt_class}\n"\
-               f"Health '\u2764\ufe0f': {self.hp}\n"\
+               f"Health \u2764\ufe0f: {self.hp}\n"\
                f"Level: {self._level}\n" \
-               f"Stats: {stat_str}\n"
+               f"Stats\n------\n{stat_str}\n```"
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Character):

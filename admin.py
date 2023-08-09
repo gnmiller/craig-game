@@ -1,4 +1,7 @@
 from discord.ext import commands
+import os
+import shutil
+import config
 
 
 class admin_Commands(commands.Cog):
@@ -52,3 +55,21 @@ class admin_Commands(commands.Cog):
     async def shutdown(self, ctx):
         await ctx.respond("goodbye")
         await ctx.bot.close()
+
+    @commands.slash_command(
+        description="Delete ALL data for the game.",
+        help="Purge data for testing.",
+        brief="Purge data for testing.",
+        hidden=True,
+        name='flush'
+    )
+    @commands.is_owner()
+    async def _flush(self, ctx):
+        path = f"./{config.data['data_dir']}/"
+        try:
+            # os.remove(path)
+            shutil.rmtree(path)
+            await ctx.respond("deleted all data files for game")
+        except FileNotFoundError as e:
+            await ctx.respond("could not delete files check disk")
+            raise FileNotFoundError(f"could not find {path} -- {e}")

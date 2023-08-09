@@ -1,5 +1,6 @@
 from discord.ext import commands
 from discord import SlashCommandGroup
+from tabulate import tabulate
 import discord
 import character
 import os
@@ -8,8 +9,8 @@ import pickle
 
 
 class character_Commands(commands.Cog):
-    character_command_group = SlashCommandGroup('character',
-                                                'Commands for interacting '
+    character_command_group = SlashCommandGroup(name='character',
+                                                description='Commands for interacting '
                                                 'with your character(s).')
 
     def __init__(self, bot):
@@ -18,24 +19,78 @@ class character_Commands(commands.Cog):
     def get_class_types(ctx: discord.AutocompleteContext):
         return ['warrior', 'rogue', 'wizard', 'villager', 'paladin', 'trader']
 
-    @commands.slash_command(
+    @character_command_group.command(
             description="Create a new character.",
             help="Create a new character.",
             brief="Create a new character.",
-            aliases=["make", "new"],
-            guild_ids=[1136708527797309500]
+            aliases=["make", "new"]
             )
     async def create(self,
                      ctx: discord.ApplicationContext,
                      name: discord.Option(str, description='Enter a name for your character.', required=True),
-                     c_name: discord.Option(str, description="choose your class",
+                     c_name: discord.Option(str, name="class_name",
+                                            description="choose your class",
                                             autocomplete=discord.utils.basic_autocomplete(get_class_types))):
         try:
             new_char = create_char(ctx.author.id, name, c_name)
-            saved_char = save_char(new_char)
+            save_char(ctx.author.id, new_char)
+            await ctx.respond(f"Character created!\n{new_char}\n")
         except FileNotFoundError:
             await ctx.respond("Failed to create a character. Please try again.")
-        assert new_char == saved_char
+
+    @character_command_group.command(
+            description="List out all your characters.",
+            help="Print a listing of all a user's characters.",
+            brief="Print char list."
+    )
+    async def list(self,
+                   ctx: discord.ApplicationContext,
+                   user_id: discord.Option(str, name="user_id",
+                                           description="check a specific user's characters",
+                                           required=False)):
+        char_list = get_chars(ctx.author.id)
+        data = []
+        headers = ["Name", "Class", "Level"]
+        for c in char_list:
+            data.append([c.name, c._bt_class.name, str(c.level)])
+        out_str = tabulate(data, headers, showindex="always",
+                           tablefmt="grid", numalign="right",
+                           stralign="left")
+        await ctx.respond(f"```{out_str}```")
+
+    @character_command_group.command(
+            description="Delete a character.",
+            help="Delete a character.",
+            brief="Delete a character.",
+            aliases=["remove", "del"]
+            )
+    async def delete(self,
+                     ctx: discord.ApplicationContext,
+                     name: discord.Option(str, description='Which character do you want to delete?',
+                                          required=True)):
+        try:
+            deleted_char = del_char(ctx.author.id, name)
+            await ctx.respond(f"Deleted character for {ctx.author.mention}"
+                              f" named {deleted_char.name}\n"
+                              f"{deleted_char}")
+        except FileNotFoundError:
+            await ctx.respond("Failed to delete character!")
+
+    @character_command_group.command(
+        description="Check which character is active.",
+        help="Check which character is active.",
+        brief="Get your active character.",
+        aliases=["active"]
+    )
+    async def whoami(self, ctx: discord.ApplicationContext):
+        try:
+            active_char = get_active(ctx.author.id)
+            await ctx.respond("Your active character\n"
+                              "---------------------\n"
+                              f"{active_char}")
+        except FileNotFoundError as e:
+            await ctx.respond(f"You don't seem to have a character! ({e})")
+        pass
 
 
 def create_char(user_id: str, name: str, c_name: str) -> character.Character:
@@ -56,7 +111,8 @@ def create_char(user_id: str, name: str, c_name: str) -> character.Character:
         else:
             class_choice = get_class(c_name)
             ret = character.Character(name=name, class_choice=class_choice)
-            print(ret)
+            if char_count == 0:
+                set_active(user_id, ret)
             return ret
     except FileNotFoundError:
         raise FileNotFoundError("file problem on character creation")
@@ -88,7 +144,7 @@ def get_chars(user_id: str):
             file.close()
 
 
-def save_char(char: character.Character, user_id: str):
+def save_char(user_id: str, char: character.Character):
     _, char_file = get_paths(user_id, char.name)
     try:
         with open(char_file, 'wb') as f:
@@ -97,6 +153,20 @@ def save_char(char: character.Character, user_id: str):
         raise FileNotFoundError("file problem on character save")
     finally:
         f.close()
+
+
+def del_char(user_id: str, char: str) -> character.Character:
+    if isinstance(char, character.Character):
+        name = char.name
+    else:
+        name = char
+    _, char_file = get_paths(user_id, name)
+    try:
+        loaded = load_char(user_id, name)
+        os.remove(char_file)
+        return loaded
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"could not remove character file {char_file} ({e})")
 
 
 def load_char(user_id: str, name: str) -> character.Character:
@@ -111,16 +181,25 @@ def load_char(user_id: str, name: str) -> character.Character:
 
 
 def set_active(user_id: str, c: character.Character, choice: int = -1):
-    if len(get_chars(user_id) == 0):
+    active_c = None
+    f = None
+    try:
+        active_c = get_active(user_id)
+    except FileNotFoundError:
+        active_c = None
+    if active_c is None:
         output_data = ((0, c.name, user_id))
-        active_file = f"./config.data['active_dir']/{user_id}"
+        active_file = f"./{config.data['data_dir']}/" \
+                      f"{config.data['active_dir']}/" \
+                      f"{user_id}.{config.data['file_ext']}"
         try:
             with open(active_file, 'wb+') as f:
                 pickle.dump(output_data, f)
         except FileExistsError:
             raise FileExistsError("could not set active character")
         finally:
-            f.close()
+            if f is not None:
+                f.close()
     if isinstance(choice, int):
         # logic for if user sends an int
         pass
@@ -130,25 +209,21 @@ def set_active(user_id: str, c: character.Character, choice: int = -1):
     if isinstance(choice, character.Character):
         # internal use
         pass
-    raise TypeError("invalid type passed for set active")
 
 
 def get_active(user_id: str) -> character.Character:
-    path = f"./{config.config['data_dir']}/{config.config['active_dir']}"
+    path = f"./{config.data['data_dir']}/{config.data['active_dir']}"
     active_path = f"{path}/{user_id}.{config.data['file_ext']}"
     try:
-        if os.isfile(active_path):
+        if os.path.isfile(active_path):
             with open(active_path, 'rb') as f:
                 active_char = pickle.load(f)
-            return active_char
+                c = load_char(user_id, active_char[1])
+                return c
         else:
             raise FileNotFoundError("no active character!")
     except FileNotFoundError:
         raise FileNotFoundError("could not get active character")
-
-
-def setup(bot):
-    bot.add_cog(character_Commands(bot))
 
 
 def get_char_count(user_id: int = 0):
@@ -177,3 +252,7 @@ def get_paths(user_id: str, name: str):
     dir_path = f"./{config.data['data_dir']}/{config.data['char_dir']}/{user_id}/"
     char_file = f"{dir_path}/{name}.{config.data['file_ext']}"
     return (dir_path, char_file)
+
+
+def setup(bot):
+    bot.add_cog(character_Commands(bot))

@@ -1,5 +1,6 @@
 import discord
 import admin
+import char_cmds
 import config
 import os
 from discord.ext import commands
@@ -7,7 +8,9 @@ from discord.ext import commands
 
 intents = discord.Intents(messages=True, presences=True, guilds=True, 
                           members=True, reactions=True, message_content=True)
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!",
+                   intents=intents,
+                   debug_guilds=config.data['debug_guilds'])
 
 
 def invite_uri():
@@ -35,9 +38,9 @@ async def on_ready():
         raise FileExistsError("could not initialize bot files")
     for g in bot.guilds:
         pass
-    cogs = ['char_cmds']
-    for c in cogs:
-        bot.load_extension(c)
+    # cogs = ['char_cmds']
+    # for c in cogs:
+    #     bot.load_extension(c)
     print(invite_uri())
     return
 
@@ -80,5 +83,5 @@ class gameMenuView(discord.ui.View):
 
 
 bot.add_cog(admin.admin_Commands(bot))
-#  bot.load_extension("char_cmds")
-bot.run(config['DISCORD_TOKEN'])
+bot.add_cog(char_cmds.character_Commands(bot))
+bot.run(config.data['envs']['DISCORD_TOKEN'])
