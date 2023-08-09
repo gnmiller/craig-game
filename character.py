@@ -381,7 +381,7 @@ class Level:
 
 
 class Health:
-    def __init__(self, con_hp: int = 100, base_hp: int = 100):
+    def __init__(self, con_hp: int = 100, base_hp: int = 90):
         self.base_hp = base_hp
         self.max_hp = con_hp + self.base_hp
         self.cur_hp = self.max_hp
@@ -761,19 +761,20 @@ class Character:
         """Return a string of character data.
 
         Returns a string containing the name, level, health, and stats for the character"""
+        # \u2764\ufe0f is red heart emoji
+        # \u2618\ufe0f is the colorized shamrock emoji
         stat_str = f"Strength \N{flexed biceps}: {self._bt_class.stats.strength}\n"\
                    f"Agility \N{athletic shoe}: {self._bt_class.stats.agility}\n"\
                    f"Intellect \N{brain}: {self._bt_class.stats.intellect}\n"\
                    f"Charisma \N{high voltage sign}: {self._bt_class.stats.intellect}\n"\
                    f"Constitution \N{bear face}: {self._bt_class.stats.charisma}\n"\
-                   f"Luck \N{shamrock}: {self._bt_class.stats.luck}\n"
+                   f"Luck \u2618\ufe0f: {self._bt_class.stats.luck}\n"
 
-        # \u2764\ufe0f is red heart emoji
-        return f"```Character: {self._name}\n" \
+        return f"Character: {self._name}\n" \
                f"Class: {self._bt_class}\n"\
-               f"Health \u2764\ufe0f: {self.hp}\n"\
+               f"Health \u2764\ufe0f: {self.hp}\n\n"\
                f"Level: {self._level}\n" \
-               f"Stats\n------\n{stat_str}\n```"
+               f"Stats\n------\n{stat_str}\n"
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Character):

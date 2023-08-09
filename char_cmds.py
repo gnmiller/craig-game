@@ -34,7 +34,7 @@ class character_Commands(commands.Cog):
         try:
             new_char = create_char(ctx.author.id, name, c_name)
             save_char(ctx.author.id, new_char)
-            await ctx.respond(f"Character created!\n{new_char}\n")
+            await ctx.respond(f"Character created for {ctx.author.mention}!\n```{new_char}```\n")
         except FileNotFoundError:
             await ctx.respond("Failed to create a character. Please try again.")
 
@@ -48,7 +48,11 @@ class character_Commands(commands.Cog):
                    user_id: discord.Option(str, name="user_id",
                                            description="check a specific user's characters",
                                            required=False)):
-        char_list = get_chars(ctx.author.id)
+        try:
+            char_list = get_chars(ctx.author.id)
+        except FileNotFoundError:
+            await ctx.respond("You have no characters!")
+            return
         data = []
         headers = ["Name", "Class", "Level"]
         for c in char_list:
@@ -85,12 +89,32 @@ class character_Commands(commands.Cog):
     async def whoami(self, ctx: discord.ApplicationContext):
         try:
             active_char = get_active(ctx.author.id)
-            await ctx.respond("Your active character\n"
+            await ctx.respond("```Your active character\n"
                               "---------------------\n"
-                              f"{active_char}")
+                              f"{active_char}```")
         except FileNotFoundError as e:
             await ctx.respond(f"You don't seem to have a character! ({e})")
         pass
+
+    @character_command_group.command(
+        description="Set your active character.",
+        help="Set your active character. You can get a list of your characters with /character list",
+        brief="Set your active character.",
+        aliases=["set_active"]
+    )
+    async def set(self, ctx: discord.ApplicationContext,
+                  char: discord.Option(str,
+                                       description="Enter the name of the character you wish to swap to.",
+                                       required=True)):
+        try:
+            active_char = get_active(ctx.author.id)
+            loaded_char = load_char(ctx.author.id, char)
+            set_active(ctx.author.id, loaded_char)
+            new_active = get_active(ctx.author.id)
+            await ctx.respond(f"Changing active character for {ctx.author.mention}\n"
+                              f"```Old\n----\n{active_char}\n\nNew\n----\n{new_active}```")
+        except Exception as e:
+            raise Exception(e)
 
 
 def create_char(user_id: str, name: str, c_name: str) -> character.Character:
@@ -183,15 +207,18 @@ def load_char(user_id: str, name: str) -> character.Character:
 def set_active(user_id: str, c: character.Character, choice: int = -1):
     active_c = None
     f = None
+    active_file = f"./{config.data['data_dir']}/" \
+                      f"{config.data['active_dir']}/" \
+                      f"{user_id}.{config.data['file_ext']}"
+    output_data = ((0, c.name, user_id))
+
     try:
         active_c = get_active(user_id)
     except FileNotFoundError:
         active_c = None
+
+    # do i care if the file exists? this could be one try/except block?
     if active_c is None:
-        output_data = ((0, c.name, user_id))
-        active_file = f"./{config.data['data_dir']}/" \
-                      f"{config.data['active_dir']}/" \
-                      f"{user_id}.{config.data['file_ext']}"
         try:
             with open(active_file, 'wb+') as f:
                 pickle.dump(output_data, f)
@@ -200,14 +227,15 @@ def set_active(user_id: str, c: character.Character, choice: int = -1):
         finally:
             if f is not None:
                 f.close()
-    if isinstance(choice, int):
-        # logic for if user sends an int
-        pass
-    if isinstance(choice, str):
-        # logic for if user sends an it
-        pass
-    if isinstance(choice, character.Character):
-        # internal use
+    else:
+        try:
+            with open(active_file, 'wb') as f:
+                pickle.dump(output_data, f)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"problem setting active character {e}")
+        finally:
+            if f is not None:
+                f.close()
         pass
 
 
