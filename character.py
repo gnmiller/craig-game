@@ -395,9 +395,9 @@ class Health:
 
 
 class bt_Class:
-    def __init__(self, name: str = None):
+    def __init__(self, name: str = None, stats: Stats = Stats()):
         self.name = name
-        self.stats = Stats()
+        self.stats = stats
         match name:
             case 'warrior':
                 return
@@ -443,8 +443,8 @@ class bt_Class:
 class Warrior(bt_Class):
     def __init__(self):
         self.name = "warrior"
-        super().__init__(self.name)
-        return
+        base_stats = self.def_stats
+        super(Warrior, self).__init__(self.name, base_stats)
 
     @property
     def main_stat(self):
@@ -471,8 +471,8 @@ class Warrior(bt_Class):
 class Rogue(bt_Class):
     def __init__(self):
         self.name = "rogue"
-        super().__init__(self.name)
-        return
+        base_stats = self.def_stats
+        super(Rogue, self).__init__(self.name, base_stats)
 
     @property
     def main_stat(self):
@@ -486,7 +486,7 @@ class Rogue(bt_Class):
 
     @property
     def def_stats(self):
-        return Stats(strength=3, agility=1, intellect=1,
+        return Stats(strength=1, agility=3, intellect=1,
                      charisma=1, con=1, luck=1)
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
@@ -499,8 +499,8 @@ class Rogue(bt_Class):
 class Wizard(bt_Class):
     def __init__(self):
         self.name = "wizard"
-        super().__init__(self.name)
-        return
+        base_stats = self.def_stats
+        super(Wizard, self).__init__(self.name, base_stats)
 
     @property
     def main_stat(self):
@@ -514,7 +514,7 @@ class Wizard(bt_Class):
 
     @property
     def def_stats(self):
-        return Stats(strength=3, agility=1, intellect=1,
+        return Stats(strength=1, agility=1, intellect=3,
                      charisma=1, con=1, luck=1)
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
@@ -527,8 +527,8 @@ class Wizard(bt_Class):
 class Trader(bt_Class):
     def __init__(self):
         self.name = "trader"
-        super().__init__(self.name)
-        return
+        base_stats = self.def_stats
+        super(Trader, self).__init__(self.name, base_stats)
 
     @property
     def main_stat(self):
@@ -542,8 +542,8 @@ class Trader(bt_Class):
 
     @property
     def def_stats(self):
-        return Stats(strength=3, agility=1, intellect=1,
-                     charisma=1, con=1, luck=1)
+        return Stats(strength=1, agility=1, intellect=1,
+                     charisma=3, con=1, luck=1)
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
         if "axe" in g.weapon.name:
@@ -555,8 +555,8 @@ class Trader(bt_Class):
 class Paladin(bt_Class):
     def __init__(self):
         self.name = "paladin"
-        super().__init__(self.name)
-        return
+        base_stats = self.def_stats
+        super(Paladin, self).__init__(self.name, base_stats)
 
     @property
     def main_stat(self):
@@ -570,8 +570,8 @@ class Paladin(bt_Class):
 
     @property
     def def_stats(self):
-        return Stats(strength=3, agility=1, intellect=1,
-                     charisma=1, con=1, luck=1)
+        return Stats(strength=1, agility=1, intellect=1,
+                     charisma=1, con=3, luck=1)
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
         # if isinstance(g.weapon, item.Mace):
@@ -584,8 +584,8 @@ class Paladin(bt_Class):
 class Villager(bt_Class):
     def __init__(self):
         self.name = "villager"
-        super().__init__(self.name)
-        return
+        base_stats = self.def_stats
+        super(Villager, self).__init__(self.name, base_stats)
 
     @property
     def main_stat(self):
@@ -599,8 +599,8 @@ class Villager(bt_Class):
 
     @property
     def def_stats(self):
-        return Stats(strength=3, agility=1, intellect=1,
-                     charisma=1, con=1, luck=1)
+        return Stats(strength=1, agility=1, intellect=1,
+                     charisma=1, con=1, luck=3)
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
         if "pan" in g.weapon.name:
@@ -626,15 +626,13 @@ class Character:
         """
     def __init__(self, name: str,
                  level: Level = Level(0, 0),
-                 stat_block: Stats = Stats(),
                  gear_block: Gear = Gear(),
                  class_choice: bt_Class = bt_Class('warrior')):
         self._level = level
         self._name = name
         self._gear = gear_block
         self._bt_class = class_choice
-        self._bt_class.stats = stat_block
-        self.hp = Health(stat_block.constitution*10)
+        self.hp = Health(self._bt_class.stats.constitution*10)
         return
 
     #  Level
@@ -666,7 +664,7 @@ class Character:
     #  Stats
     @property
     def stats(self) -> Stats:
-        return self._stats
+        return self._bt_class.stats
 
     @stats.setter
     def stats(self, value: Stats):
@@ -718,8 +716,15 @@ class Character:
         return (base + (main_stat + defense) * .15)
 
     def __str__(self) -> str:
+        stat_str = f"Strength \N{flexed biceps}: {self._bt_class.stats.strength}\n"\
+                   f"Agility \N{athletic shoe}: {self._bt_class.stats.agility}\n"\
+                   f"Intellect \N{brain}: {self._bt_class.stats.intellect}\n"\
+                   f"Charisma \N{high voltage sign}: {self._bt_class.stats.intellect}\n"\
+                   f"Constitution \N{bear face}: {self._bt_class.stats.charisma}\n"\
+                   f"Luck \N{shamrock}: {self._bt_class.stats.luck}\n"
+
         return f"Character: {self._name}\n" \
                f"Class: {self._bt_class}\n"\
-               f"Health: {self.hp}\n"\
+               f"Health '\u2764\ufe0f': {self.hp}\n"\
                f"Level: {self._level}\n" \
-               f"Stats: {self._bt_class.stats}"
+               f"Stats: {stat_str}\n"
