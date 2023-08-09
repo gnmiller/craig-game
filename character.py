@@ -44,11 +44,6 @@ class Stats:
     def strength(self, val: int) -> None:
         self._strength = val
 
-    @strength.deleter
-    def strength(self) -> None:
-        del self._strength
-    #  End Strength
-
     #  Agility Code
     @property
     def agility(self) -> int:
@@ -57,13 +52,8 @@ class Stats:
     @agility.setter
     def agility(self, val: int) -> None:
         self._agility = val
-
-    @agility.deleter
-    def agility(self) -> None:
-        del self._agility
-    #  End Agility
-
     #  Intellect Code
+
     @property
     def intellect(self) -> int:
         return self._intellect
@@ -71,11 +61,6 @@ class Stats:
     @intellect.setter
     def intellect(self, val: int) -> None:
         self._intellect = val
-
-    @intellect.deleter
-    def intellect(self) -> None:
-        del self._intellect
-    #  End Intellect
 
     # Charisma Code
     @property
@@ -86,11 +71,6 @@ class Stats:
     def charisma(self, val: int) -> None:
         self._charisma = val
 
-    @charisma.deleter
-    def charisma(self) -> None:
-        del self._charisma
-    #  End Charisma
-
     #  Constitution Code
     @property
     def constitution(self) -> int:
@@ -100,11 +80,6 @@ class Stats:
     def constitution(self, val: int) -> None:
         self._constitution = val
 
-    @constitution.deleter
-    def constitution(self) -> None:
-        del self._constitution
-    #  End Constitution
-
     #  Luck Code
     @property
     def luck(self) -> int:
@@ -113,11 +88,6 @@ class Stats:
     @luck.setter
     def luck(self, val: int) -> None:
         self._luck = val
-
-    @luck.deleter
-    def luck(self) -> None:
-        del self._luck
-    #  End Luck
 
     def __str__(self):
         """Generate a dict of stat_name: stat_value and return it as a string."""
@@ -150,6 +120,17 @@ class Stats:
             return key[1:len(key)], value
         else:
             raise StopIteration
+
+    def __eq__(self, other):
+        if isinstance(other, Stats):
+            return self.strength == other.strength and \
+                self.agility == other.agility and \
+                self.intellect == other.intellect and \
+                self.charisma == other.charisma and \
+                self.constitution == other.constitution and \
+                self.luck == other.luck
+        return False
+
 
 
 class Gear:
@@ -295,6 +276,38 @@ class Gear:
             case _:
                 raise StopIteration
 
+    def __eq__(self, other):
+        if not isinstance(other, Gear):
+            return False
+        return (self.head == other.head and
+                self.chest == other.chest and
+                self.arms == other.arms and
+                self.legs == other.legs and
+                self.hands == other.hands and
+                self.rings == other.rings and
+                self.trinket == other.trinket and
+                self.weapon == other.weapon and
+                self.oh == other.oh)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __str__(self):
+        if self.rings == []:
+            ring_str = None
+        else:
+            ring_str = f"L: {self.rings[0]} ; R: {self.rings[1]}"
+        return f"Head: {self.head}\n" \
+            f"Chest: {self.chest}\n" \
+            f"Arms: {self.arms}\n" \
+            f"Legs: {self.legs}\n" \
+            f"Hands: {self.hands}\n" \
+            f"Rings: {ring_str}\n" \
+            f"Trinket: {self.trinket}\n" \
+            f"Weapon: {self.weapon}\n" \
+            f"Off-hand: {self.oh}" \
+
+
 
 class Level:
     """A container representing a character's level.
@@ -362,6 +375,11 @@ class Level:
     def __str__(self) -> str:
         return str(self.cur_level)
 
+    def __eq__(self, other=None) -> bool:
+        if not isinstance(other, Level):
+            return False
+        return self.cur_level == other.cur_level
+
 
 class Health:
     def __init__(self, con_hp: int = 100, base_hp: int = 100):
@@ -392,6 +410,15 @@ class Health:
 
     def __str__(self):
         return f"{self.cur_hp} / {self.max_hp}"
+
+    def __eq__(self, other=None) -> bool:
+        if not isinstance(other, Health):
+            return False
+        return self.cur_hp == other.cur_hp and \
+            self.base_hp == other.base_hp
+
+    def __ne__(self, other=None) -> None:
+        return not self.__eq__(other)
 
 
 class bt_Class:
@@ -438,6 +465,11 @@ class bt_Class:
 
     def __str__(self):
         return self.name
+
+    def __eq__(self, other):
+        if isinstance(other, bt_Class):
+            return self.name == other.name and self.stats == other.stats
+        return False
 
 
 class Warrior(bt_Class):
@@ -583,6 +615,8 @@ class Paladin(bt_Class):
 
 class Villager(bt_Class):
     def __init__(self):
+        """The constructor initialized the object with the class name 'villager' and
+            sets the base stats using `def_stas`"""
         self.name = "villager"
         base_stats = self.def_stats
         super(Villager, self).__init__(self.name, base_stats)
@@ -592,6 +626,8 @@ class Villager(bt_Class):
         return self.stats.luck
 
     def get_gear_stats(self, g: Gear = Gear()):
+        """Takes a `character.Gear` object as an argument and returns a list of
+            luck stats from each in the Gear object."""
         ret = []
         for i in g:
             ret.append(i.luck)
@@ -599,10 +635,15 @@ class Villager(bt_Class):
 
     @property
     def def_stats(self):
+        """Returns a `character.Stats` object with the class' default stats.
+            IE Strength: 1, Agility: 1, Intellect: 1, Charisma: 1, Con: 1, Luck: 3"""
         return Stats(strength=1, agility=1, intellect=1,
                      charisma=1, con=1, luck=3)
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
+        """Takes a `character.Gear` object as an argument adn returns a float
+            If the weapon name in the Gear object is pan the value is 1.1
+            otherwise the value is 1.0"""
         if "pan" in g.weapon.name:
             return 1.1
         else:
@@ -715,7 +756,12 @@ class Character:
             defense += g
         return (base + (main_stat + defense) * .15)
 
+    #  character.Character internal/inherited funcs #
+
     def __str__(self) -> str:
+        """Return a string of character data.
+
+        Returns a string containing the name, level, health, and stats for the character"""
         stat_str = f"Strength \N{flexed biceps}: {self._bt_class.stats.strength}\n"\
                    f"Agility \N{athletic shoe}: {self._bt_class.stats.agility}\n"\
                    f"Intellect \N{brain}: {self._bt_class.stats.intellect}\n"\
@@ -728,3 +774,12 @@ class Character:
                f"Health '\u2764\ufe0f': {self.hp}\n"\
                f"Level: {self._level}\n" \
                f"Stats: {stat_str}\n"
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Character):
+            return self.name == other.name and self.level == other.level \
+                and self.gear == other.gear and self._bt_class == other._bt_class
+        return False
+
+    def __ne__(self, other) -> bool:
+        return not self.__eq__(other)
