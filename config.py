@@ -6,7 +6,7 @@ Provide a centralized dictionary of commonly used parameters for the bot.
 
 Parameters
 ----------
-data_dir        The location for file storage for the application. Serves as a 
+data_dir        The location for file storage for the application. Serves as a
                     prefix for other file paths. (default = 'rpg-data')
 char_dir        The location to store character files. (default = 'character')
 active_dir      The location to store a user's active character. (default = 'active')

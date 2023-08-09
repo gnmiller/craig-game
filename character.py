@@ -123,7 +123,7 @@ class Stats:
 
     def __eq__(self, other):
         """Return equals if other is a `character.Stats` and it has equal properties of
-        strength, agility, intellect, charisma, constitution, and luck otherwise will 
+        strength, agility, intellect, charisma, constitution, and luck otherwise will
         return False"""
         if isinstance(other, Stats):
             return self.strength == other.strength and \
@@ -295,7 +295,7 @@ class Gear:
                 self.oh == other.oh)
 
     def __str__(self):
-        """Return a string representation of the Gear object. Each `item.Item` in the 
+        """Return a string representation of the Gear object. Each `item.Item` in the
         `character.Gear` is evaluated individually."""
         if self.rings == []:
             ring_str = None
@@ -414,7 +414,7 @@ class Health:
         Current HP is set as the percentage of the new max HP. This would
         generally be used when leveling up a charcter or otherwise adjusting
         their constution (like when equipping gear with +CON).
-        
+
         Parameters
         ----------
         s   The new stat block to calculate HP based on"""
@@ -441,7 +441,7 @@ class Health:
 class bt_Class:
     def __init__(self, name: str = None, stats: Stats = Stats()):
         """Create a new bt_class object with its name as name and its stats as stats.
-        
+
         Parameters
         ----------
         name    The name of the class to use. A list of current classes is
@@ -719,7 +719,7 @@ class Character:
         name        The name of the new character
         level       The level to use for the new character. By default all
                         characters will start with level 0 and 0 exp.
-        stats      The stat block to use for the character. Provided 
+        stats      The stat block to use for the character. Provided
                         by `bt_class.__init__()` if not specified.
         gear        The `character.Gear` object to use for this character.
                         New characters generally will be naked, with no items equipped.
@@ -795,7 +795,7 @@ class Character:
 
         Derived from the character's main stat (`bt_class.main_stat`),
             and the character's gear stats (`bt_class.get_gear_stats()`).
-            
+
         Additionally checks `bt_class.attack_bonus()` to see if the character
             wielding their preferred weapon type"""
         base = 10
@@ -817,7 +817,7 @@ class Character:
 
         Derived from the character's main stat (`bt_class.main_stat`),
             and the character's gear stats (`bt_class.get_gear_stats()`).
-            
+
         Additionally checks `bt_class.attack_bonus()` to see if the character
             wielding their preferred weapon type"""
         base = 8

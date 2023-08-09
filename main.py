@@ -6,7 +6,7 @@ import os
 from discord.ext import commands
 # from dotenv import dotenv_values
 
-intents = discord.Intents(messages=True, presences=True, guilds=True, 
+intents = discord.Intents(messages=True, presences=True, guilds=True,
                           members=True, reactions=True, message_content=True)
 bot = commands.Bot(command_prefix="!",
                    intents=intents,

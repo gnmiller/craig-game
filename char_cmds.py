@@ -15,16 +15,16 @@ class character_Commands(commands.Cog):
 
     def __init__(self, bot):
         """Construct the character_Commands cog.
-        
+
         This Cog provides commands for interacting with a user's characters such as
         creating, deleting and setting the current character to use.
-        
+
         By default this Cog expects that the following directories will exist:
             ./rpg-data
             ./rpg-data/characters/
             ./rpg-data/active/
         These should be created in on_ready() (or before running the bot)
-        The values for these directories can be customized in config.py by 
+        The values for these directories can be customized in config.py by
         modifying their values in config.data. These are expected to be plain names
         with no OS special characters.
         Ex:
@@ -43,21 +43,24 @@ class character_Commands(commands.Cog):
             )
     async def create(self,
                      ctx: discord.ApplicationContext,
-                     name: discord.Option(str, description='Enter a name for your character.', required=True),
-                     c_name: discord.Option(str, name="class_name",
+                     name: discord.Option(str,
+                                          description='Enter a name for your character.',
+                                          required=True),
+                     c_name: discord.Option(str,
                                             description="choose your class",
                                             autocomplete=discord.utils.basic_autocomplete(get_class_types))):
         """Create a new character
-        
-        Attempt to create a new character in the associated file structure. 
+
+        Attempt to create a new character in the associated file structure.
             By default characters are stored in
             ./rpg-data/characters/<discord user_id>/<character name>.pickle.
             This is customizable in config.data via the data_dir, char_dir, and file_ext options.
 
-        A new `character.Character` object is contructed via `create_char()` then passed to `save_char()`.
+        A new `character.Character` object is contructed via `create_char()`
+            then passed to `save_char()`.
 
         The object returned from `create_char()` is sent to the user.
-            
+
         Paramters
         ---------
         ctx     The discord context object for the command
@@ -78,13 +81,13 @@ class character_Commands(commands.Cog):
     )
     async def list(self,
                    ctx: discord.ApplicationContext,
-                   user_id: discord.Option(str, name="user_id",
+                   user_id: discord.Option(str, name="Character name to lookup",
                                            description="check a specific user's characters",
                                            required=False)):
         """List a user's characters.
 
         Attempt to produce a listing of all character's for a given user. By default assumes
-            you want the user that sent the message's characters. A user id may be supplied to 
+            you want the user that sent the message's characters. A user id may be supplied to
             list characters for another user.
 
         Parameters
@@ -162,7 +165,8 @@ class character_Commands(commands.Cog):
 
     @character_command_group.command(
         description="Set your active character.",
-        help="Set your active character. You can get a list of your characters with /character list",
+        help="Set your active character. You can get a "\
+             "list of your characters with /character list",
         brief="Set your active character.",
         aliases=["set_active"]
     )
@@ -171,7 +175,7 @@ class character_Commands(commands.Cog):
                                        description="Enter the name of the character you wish to swap to.",
                                        required=True)):
         """Set the user's active character.
-        
+
         Parameters
         ----------
         ctx     The discord context object for the command
@@ -278,8 +282,8 @@ def set_active(user_id: str, c: character.Character, choice: int = -1):
     active_c = None
     f = None
     active_file = f"./{config.data['data_dir']}/" \
-                      f"{config.data['active_dir']}/" \
-                      f"{user_id}.{config.data['file_ext']}"
+                  f"{config.data['active_dir']}/" \
+                  f"{user_id}.{config.data['file_ext']}"
     output_data = ((0, c.name, user_id))
 
     try:
