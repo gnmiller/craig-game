@@ -54,8 +54,6 @@ def create_char(user_id: str, name: str, c_name: str) -> character.Character:
             with open(char_file, 'rb') as f:
                 return pickle.load(f)
         else:
-            import pdb
-            pdb.set_trace()
             class_choice = get_class(c_name)
             ret = character.Character(name=name, class_choice=class_choice)
             print(ret)
