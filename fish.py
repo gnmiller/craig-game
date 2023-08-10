@@ -28,10 +28,13 @@ class FishingPool:
         return caught
 
 
-class Fish:
+class Fish(item.Item):
     def __init__(self, name: str = "cod", value: int = 1):
-        self._name = name
-        self._value = value
+        self.name = name
+        self.value = value
 
     def __str__(self):
-        return f"{self._name}, {self._value}"
+        return f"{self.name}, {self.value}"
+
+    def __hash__(self):
+        return hash((self.name, self.value))

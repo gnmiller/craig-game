@@ -1,5 +1,6 @@
 from discord.ext import commands
 from discord import SlashCommandGroup
+from collections import Counter
 from tabulate import tabulate
 import discord
 import character
@@ -69,7 +70,6 @@ class character_Commands(commands.Cog):
         """
         try:
             new_char = create_char(user_id=ctx.author.id, name=name, c_name=c_name, )
-            save_char(ctx.author.id, new_char)
             await ctx.respond(f"Character created for {ctx.author.mention}!\n```{new_char}```\n")
         except FileNotFoundError:
             await ctx.respond("Failed to create a character. Please try again.")
@@ -192,6 +192,18 @@ class character_Commands(commands.Cog):
         except Exception as e:
             raise Exception(e)
 
+    @character_command_group.command(
+        description="Check your inventory.",
+        help="List the contents of your inventory out.",
+        brief="What in the bag?"
+    )
+    async def inventory(self, ctx: discord.ApplicationContext):
+
+        out_str = "```Inventory Contents (item, # held)"\
+                  "----------------------------------"\
+                  f"{get_inv_contents(ctx.author.id)}"
+        await ctx.respond(out_str)
+
 
 def create_char(user_id: str, name: str, c_name: str) -> character.Character:
     dir_path, char_file = get_paths(user_id, name)
@@ -206,21 +218,22 @@ def create_char(user_id: str, name: str, c_name: str) -> character.Character:
         raise ValueError("Too many characters!")
     try:
         if os.path.isfile(char_file):
+            print("loaded char")
             with open(char_file, 'rb') as f:
-                return pickle.load(f)
+                loaded_char = pickle.load(f)
+                f.close()
+                return loaded_char
         else:
             class_choice = get_class(c_name)
-            ret = character.Character(name=name, class_choice=class_choice, )
+            ret = character.Character(name=name, class_choice=class_choice)
+            save_char(user_id, ret)
             if char_count == 0:
                 set_active(user_id, ret)
             return ret
-    except FileNotFoundError:
-        raise FileNotFoundError("file problem on character creation")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"file problem on character creation {e}")
     except Exception:
         raise Exception("problem in character creation")
-    finally:
-        if f is not None:
-            f.close()
 
 
 def get_chars(user_id: str):
@@ -235,24 +248,26 @@ def get_chars(user_id: str):
                 with open(file_path, 'rb') as file:
                     loaded_data = pickle.load(file)
                     chars.append(loaded_data)
-                file.close()
+                    file.close()
         return chars
     except FileNotFoundError:
         raise FileNotFoundError("problem checking char list")
-    finally:
-        if file is not None:
-            file.close()
 
 
 def save_char(user_id: str, char: character.Character):
     _, char_file = get_paths(user_id, char.name)
-    try:
-        with open(char_file, 'wb') as f:
-            pickle.dump(char, f)
+    f = None
+    try:  # this can probably be one block
+        if not os.path.isfile(char_file):
+            with open(char_file, 'w+b') as f:
+                pickle.dump(char, f)
+                f.close()
+        else:
+            with open(char_file, 'wb') as f:
+                pickle.dump(char, f)
+                f.close()
     except FileNotFoundError:
         raise FileNotFoundError("file problem on character save")
-    finally:
-        f.close()
 
 
 def del_char(user_id: str, char: str) -> character.Character:
@@ -274,7 +289,7 @@ def load_char(user_id: str, name: str) -> character.Character:
     try:
         with open(char_file, 'rb') as f:
             loaded_char = pickle.load(f)
-        f.close()
+            f.close()
         return loaded_char
     except FileNotFoundError:
         raise FileNotFoundError("Character not found!")
@@ -292,27 +307,13 @@ def set_active(user_id: str, c: character.Character, choice: int = -1):
         active_c = get_active(user_id)
     except FileNotFoundError:
         active_c = None
-
-    # do i care if the file exists? this could be one try/except block?
-    if active_c is None:
-        try:
-            with open(active_file, 'wb+') as f:
-                pickle.dump(output_data, f)
-        except FileExistsError:
-            raise FileExistsError("could not set active character")
-        finally:
-            if f is not None:
-                f.close()
-    else:
-        try:
-            with open(active_file, 'wb') as f:
-                pickle.dump(output_data, f)
-        except FileNotFoundError as e:
-            raise FileNotFoundError(f"problem setting active character {e}")
-        finally:
-            if f is not None:
-                f.close()
-        pass
+    try:
+        with open(active_file, 'w+b') as f:
+            pickle.dump(output_data, f)
+            f.close()
+    except FileExistsError:
+        raise FileExistsError("could not set active character")
+    return active_c
 
 
 def get_active(user_id: str) -> character.Character:
@@ -352,8 +353,18 @@ def get_class(name: str) -> character.bt_Class:
             raise TypeError("invalid class")
 
 
+def get_inv_contents(user_id: str) -> str:
+    """Return a string with inventory contents and the # of each item."""
+    active_char = get_active(user_id)
+    count = Counter(active_char.inventory)
+    out_str = ""
+    for v in count.keys():
+        out_str += f"{v.name}, {count[v]}\n"
+    return out_str[0:len(out_str)-1]
+
+
 def get_paths(user_id: str, name: str):
-    dir_path = f"./{config.data['data_dir']}/{config.data['char_dir']}/{user_id}/"
+    dir_path = f"./{config.data['data_dir']}/{config.data['char_dir']}/{user_id}"
     char_file = f"{dir_path}/{name}.{config.data['file_ext']}"
     return (dir_path, char_file)
 

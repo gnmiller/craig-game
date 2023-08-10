@@ -1,5 +1,6 @@
 from dotenv import dotenv_values
 import random
+import os
 
 
 max_characters = 10
@@ -40,3 +41,15 @@ def crit(diff: int, luck: int) -> bool:
         return True
     else:
         return False
+
+
+def init_data():
+    data_dir = f"./{data['data_dir']}"
+    if not os.path.isdir(data_dir):
+        os.makedirs(data_dir)
+    char_files_dir = f"{data_dir}/{data['char_dir']}"
+    if not os.path.isdir(char_files_dir):
+        os.makedirs(char_files_dir)
+    active_files_dir = f"{data_dir}/{data['active_dir']}"
+    if not os.path.isdir(active_files_dir):
+        os.makedirs(active_files_dir)
