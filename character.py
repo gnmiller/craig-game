@@ -1,5 +1,6 @@
 import item
 import math
+from collections import Counter
 
 
 class Stats:
@@ -139,6 +140,7 @@ class Stats:
             self._index += 1
             return key[1:len(key)], value
         else:
+            self._index = 0
             raise StopIteration
 
     def __eq__(self, other):
@@ -299,6 +301,7 @@ class Gear:
             case 9:
                 return self.oh
             case _:
+                self._index = -1
                 raise StopIteration
 
     def __eq__(self, other):
@@ -332,8 +335,7 @@ class Gear:
             f"Rings: {ring_str}\n" \
             f"Trinket: {self.trinket}\n" \
             f"Weapon: {self.weapon}\n" \
-            f"Off-hand: {self.oh}" \
-
+            f"Off-hand: {self.oh}"
 
 
 class Level:
@@ -765,6 +767,7 @@ class Inventory:
         Construct a new inventory object. By default the inventory is
         empty and contains 0 coins.
         """
+        self.items = []
         self.index = -1
         self.coins = coins
 
@@ -786,7 +789,7 @@ class Inventory:
         of the inventory.
 
         Parameters
-        ---------- 
+        ----------
         value   An item.Equipment object to insert
         """
         if not isinstance(value, item.Item):
@@ -802,7 +805,7 @@ class Inventory:
         of the inventory.
 
         Parameters
-        ---------- 
+        ----------
         value   An item.Equipment object to remove
         """
         if not isinstance(value, item.Item):
@@ -860,30 +863,28 @@ class Inventory:
 
         Coin count is NOT included in this information.
         """
-        return str(*self.items)
+        out_str = ""
+        for i in self.items:
+            out_str += f"{i.name}, "
+        return out_str[0:len(out_str)-2]
 
     def __iter__(self):
         return self
 
     def __next__(self):
         self.index += 1
-        return self.items[self.index]
+        if self.index > len(self.items)-1:
+            self.index = -1
+            raise StopIteration
+        else:
+            return self.items[self.index]
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Inventory):
             return TypeError("that's not an inventory")
-        temp = other.items.copy()  # be safe
-        for i in temp:
-            if not isinstance(i, item.Item):
-                raise TypeError("how did that get in here?")
-            if i in self.items:
-                temp.remove(i)
-            else:
-                return False
-        if len(temp) == 0:
-            return True
-        else:
-            return False
+        temp = self.items.copy()
+        other_t = other.items.copy()
+        return Counter(temp) == Counter(other_t)
 
 
 class Character:
@@ -1055,9 +1056,12 @@ class Character:
     #  character.Character internal/inherited funcs #
 
     def __str__(self) -> str:
-        """Return a string of character data.
+        """
+        Return a string of character data.
 
-        Returns a string containing the name, level, health, and stats for the character"""
+        Returns a string containing the name, level, health, and 
+        stats for the character
+        """
         # \u2764\ufe0f is red heart emoji
         # \u2618\ufe0f is the colorized shamrock emoji
         stat_str = f"Strength 💪: {self._bt_class.stats.strength}\n"\

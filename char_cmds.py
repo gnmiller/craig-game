@@ -198,7 +198,13 @@ class character_Commands(commands.Cog):
         brief="What in the bag?"
     )
     async def inventory(self, ctx: discord.ApplicationContext):
+        """
+        Print out the contents of the character's inventory.
 
+        Parameters
+        ----------
+        ctx     The discord context object for the command
+        """
         out_str = "```Inventory Contents (item, # held)"\
                   "----------------------------------"\
                   f"{get_inv_contents(ctx.author.id)}"
@@ -206,6 +212,28 @@ class character_Commands(commands.Cog):
 
 
 def create_char(user_id: str, name: str, c_name: str) -> character.Character:
+    """
+    Create a new character in the file structure.
+
+    Attempts to create a new character in the data directory specified within
+    the config.py file. By default this is ./rpg-data/character/. Files are
+    written out using the pickle library. The function returns a
+    `character.Character` object upon successful return. If a character was
+    created the new object is returned. If a character with the same name is
+    found that character is instead loaded and its data returned.
+
+    If the user has no characters the application will assign the new character
+    as their active character via `set_active()`.
+
+    Parameters
+    ----------
+    user_id     The user's Discord ID (eg ctx.author.id)
+
+    name        The name for the new character
+
+    c_name      The new character's class. For a list of classes see 
+                    `config.data['classes']`
+    """
     dir_path, char_file = get_paths(user_id, name)
     f = None
     try:
@@ -237,6 +265,17 @@ def create_char(user_id: str, name: str, c_name: str) -> character.Character:
 
 
 def get_chars(user_id: str):
+    """
+    Get a listing of a user's characters.
+
+    Get a listing of all of a user's characters in the file structure.
+    Returns an empty list if the user has no characters. Data directories
+    are specified in `config.data`
+
+    Parameters
+    ----------
+    name        The name for the new character
+    """
     dir_path, _ = get_paths(user_id, None)
     chars = []
     file = None
@@ -255,6 +294,18 @@ def get_chars(user_id: str):
 
 
 def save_char(user_id: str, char: character.Character):
+    """
+    Save a character.
+
+    Attempts to save a character object to the file structure. Data
+    directories are specified in `config.data`
+
+    Parameters
+    ----------
+    user_id     The user's Discord ID (eg ctx.author.id)
+
+    char        The `character.Character` object being written to disk.
+    """
     _, char_file = get_paths(user_id, char.name)
     f = None
     try:  # this can probably be one block
@@ -271,6 +322,19 @@ def save_char(user_id: str, char: character.Character):
 
 
 def del_char(user_id: str, char: str) -> character.Character:
+    """
+    Delete a character.
+
+    Attempt to delete a character from the file structure. Data
+    directories are specified in `config.data` If a character is
+    removed its data is returned.
+
+    Parameters
+    ----------
+    user_id     user_id     The user's Discord ID (eg ctx.author.id
+
+    char        The `character.Character` object being deleted.
+    """
     if isinstance(char, character.Character):
         name = char.name
     else:
@@ -285,6 +349,19 @@ def del_char(user_id: str, char: str) -> character.Character:
 
 
 def load_char(user_id: str, name: str) -> character.Character:
+    """
+    Load a character.
+    
+    Attempt to load a character from the file structure. Data
+    directories are specified in `config.data` A `character.Character` object
+    is returned upon success.
+
+    Parameters
+    ----------
+    user_id     user_id     The user's Discord ID (eg ctx.author.id
+
+    name        The name of the character to load.
+    """
     _, char_file = get_paths(user_id, name)
     try:
         with open(char_file, 'rb') as f:
@@ -296,6 +373,22 @@ def load_char(user_id: str, name: str) -> character.Character:
 
 
 def set_active(user_id: str, c: character.Character, choice: int = -1):
+    """
+    Set a character as the active character.
+
+    Assigned a previously created character as the active character. This is
+    achieved by writing the character data out to a file in the file structure.
+    By default this will be ./rpg-data/active/. This is a full representation of
+    the character data produced by `pickle.dump()`.
+
+    Parameters
+    ----------
+    user_id     The user's Discord ID (eg ctx.author.id
+
+    char        The `character.Character` object to make the active character.
+
+    choice      Unused
+    """
     active_c = None
     f = None
     active_file = f"./{config.data['data_dir']}/" \
@@ -317,6 +410,18 @@ def set_active(user_id: str, c: character.Character, choice: int = -1):
 
 
 def get_active(user_id: str) -> character.Character:
+    """
+    Returns the user's active character.
+
+    Checks the file structure for the user's active character. The
+    application supports multiple characters per user. This serves
+    as a method for uniquely identifying which character a user
+    intends to interact with.
+
+    Parameters
+    ----------
+    user_id     The user's Discord ID (eg ctx.author.id
+    """
     path = f"./{config.data['data_dir']}/{config.data['active_dir']}"
     active_path = f"{path}/{user_id}.{config.data['file_ext']}"
     try:
@@ -332,10 +437,26 @@ def get_active(user_id: str) -> character.Character:
 
 
 def get_char_count(user_id: int = 0):
+    """
+    Returns the number of characters a user has.
+
+    Parameters
+    ----------
+    user_id     The user's Discord ID (eg ctx.author.id
+    """
     return len(get_chars(user_id))
 
 
 def get_class(name: str) -> character.bt_Class:
+    """
+    Construct a class object based on the string provided.
+
+    TODO: Reference config.data['classes'] to get this?
+
+    Parameters
+    ----------
+    name        The name of the class you are creating.
+    """
     match name:
         case 'warrior':
             return character.Warrior()
@@ -354,7 +475,16 @@ def get_class(name: str) -> character.bt_Class:
 
 
 def get_inv_contents(user_id: str) -> str:
-    """Return a string with inventory contents and the # of each item."""
+    """
+    Return a string with inventory contents and the # of each item.
+
+    Inspects the inventory contents for the user's active character and returns
+    them as a string 'item name, item count'
+
+    Parameters
+    ----------
+    user_id     The user's Discord ID (eg ctx.author.id
+    """
     active_char = get_active(user_id)
     count = Counter(active_char.inventory)
     out_str = ""
@@ -364,10 +494,32 @@ def get_inv_contents(user_id: str) -> str:
 
 
 def get_paths(user_id: str, name: str):
+    """
+    Build the paths for the application's data directories.
+
+    Looks at information from config.data to determine the expected
+    file structure for the application. This function makes NO changes
+    to disk. It is a helper for other functions to simplify getting
+    the path for characters, etc.
+
+    Info
+    ----
+    data_dir    The root of the file structure for the application data.
+    char_dir    The directory to save character data in. ./data_dir/char_dir/
+    file_ext    The file extension to append to all files created by the
+                    application.
+
+    Parameters
+    ----------
+    user_id     user_id     The user's Discord ID (eg ctx.author.id)
+
+    name        The name of the character you want to build a path for.
+    """
     dir_path = f"./{config.data['data_dir']}/{config.data['char_dir']}/{user_id}"
     char_file = f"{dir_path}/{name}.{config.data['file_ext']}"
     return (dir_path, char_file)
 
 
 def setup(bot):
+    """Unused"""
     bot.add_cog(character_Commands(bot))
