@@ -1,3 +1,12 @@
+class Item:
+    def __init__(self, name: str, value: int = 0):
+        self.name = name
+        self.value = value
+
+    def __str__(self):
+        return self.name
+
+
 class Slot:
     """A super class representing the possible gear slots for a character.
 
@@ -189,7 +198,7 @@ class Material:
 
 
 #  TODO create an Item superclass
-class Equipment:
+class Equipment(Item):
     """Equipment super class
 
     The super class for all equipment type items. Containing the properties

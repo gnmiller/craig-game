@@ -68,7 +68,7 @@ class character_Commands(commands.Cog):
         c_name  The character's class
         """
         try:
-            new_char = create_char(ctx.author.id, name, c_name)
+            new_char = create_char(user_id=ctx.author.id, name=name, c_name=c_name, )
             save_char(ctx.author.id, new_char)
             await ctx.respond(f"Character created for {ctx.author.mention}!\n```{new_char}```\n")
         except FileNotFoundError:
@@ -81,7 +81,7 @@ class character_Commands(commands.Cog):
     )
     async def list(self,
                    ctx: discord.ApplicationContext,
-                   user_id: discord.Option(str, name="Character name to lookup",
+                   user_id: discord.Option(str,
                                            description="check a specific user's characters",
                                            required=False)):
         """List a user's characters.
@@ -156,11 +156,13 @@ class character_Commands(commands.Cog):
         ctx The discord context object for the command"""
         try:
             active_char = get_active(ctx.author.id)
-            await ctx.respond("```Your active character\n"
+            await ctx.respond("```"
+                              "Your active character\n"
                               "---------------------\n"
                               f"{active_char}```")
-        except FileNotFoundError as e:
-            await ctx.respond(f"You don't seem to have a character! ({e})")
+        except FileNotFoundError:
+            await ctx.respond("```You don't have any characters!"
+                              " Use /character create first```")
         pass
 
     @character_command_group.command(
@@ -208,7 +210,7 @@ def create_char(user_id: str, name: str, c_name: str) -> character.Character:
                 return pickle.load(f)
         else:
             class_choice = get_class(c_name)
-            ret = character.Character(name=name, class_choice=class_choice)
+            ret = character.Character(name=name, class_choice=class_choice, )
             if char_count == 0:
                 set_active(user_id, ret)
             return ret

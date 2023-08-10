@@ -3,29 +3,45 @@ import math
 
 
 class Stats:
-    """Wrapper for character stats.
-
-    Attributes:
-        strength        Character's strength
-        agility         Character's agility
-        intellect       Character's intellect
-        charisma        Character's charisma
-        constitution    Character's constitution
-        luck            Character's luck
-        inventory       The character's inventory (NYI)
     """
+    Wrapper for character stats.
+
+    Attributes
+    ----------
+    strength        Character's strength
+
+    agility         Character's agility
+
+    intellect       Character's intellect
+
+    charisma        Character's charisma
+
+    constitution    Character's constitution
+
+    luck            Character's luck
+
+    inventory       The character's inventory (NYI)
+    """
+
     def __init__(self, strength=0, agility=0, intellect=0,
                  charisma=0, con=0, luck=0) -> None:
-        """Create a new stat block for a `character.Character`
+        """
+        Create a new stat block for a `character.Character`
 
         Parameters
         ----------
         strength    Starting strength value.
+
         agility    Starting agility value.
+
         intellect    Starting intellect value.
+
         charisma    Starting charisma value.
+
         constitution    Starting constitution value.
-        luck    Starting luck value."""
+
+        luck    Starting luck value.
+        """
         self._strength = strength
         self._agility = agility
         self._intellect = intellect
@@ -90,7 +106,9 @@ class Stats:
         self._luck = val
 
     def __str__(self):
-        """Generate a dict of stat_name: stat_value and return it as a string."""
+        """
+        Generate a dict of stat_name: stat_value and return it as a string.
+        """
         rstats = {}
         for k, v in vars(self).items():
             if "index" in k:
@@ -102,14 +120,16 @@ class Stats:
         return self
 
     def __next__(self):
-        """Iterate over the stats of this object.
+        """
+        Iterate over the stats of this object.
 
         Iterates over vars(self). Using the data provided by vars()
         the iterator tries to lookup the key name (stat name), and
         then pulls the corresponding value from vars(). Meant to be
         scalable for new stats in the future.
         May have unexpected results if vars() does not provide a consistent
-        ordering of the objects."""
+        ordering of the objects.
+        """
         if self._index < len(vars(self).keys()):
             key = list(vars(self).keys())[self._index]
             if "index" in key:
@@ -122,9 +142,11 @@ class Stats:
             raise StopIteration
 
     def __eq__(self, other):
-        """Return equals if other is a `character.Stats` and it has equal properties of
+        """
+        Return equals if other is a `character.Stats` and it has equal properties of
         strength, agility, intellect, charisma, constitution, and luck otherwise will
-        return False"""
+        return False.
+        """
         if isinstance(other, Stats):
             return self.strength == other.strength and \
                 self.agility == other.agility and \
@@ -152,7 +174,8 @@ class Gear:
         trinket A special trinket (ooo fancy)
         weapon A weapon
         oh Another weapon, or maybe a shield?
-        """
+    """
+
     def __init__(self):
         """Create a new Gear container for a character.
 
@@ -323,6 +346,7 @@ class Level:
         cur_level   The character's current level as an integer
         exp         The character's experience count as an integer
     """
+
     def __init__(self, cur_level: int = 0, exp: int = 0):
         """Create a new Level object for a character.
 
@@ -388,6 +412,14 @@ class Level:
 
 
 class Health:
+    """
+    Contains the health information for a character.
+
+    Attributes
+        hp  Contains current and max HP values for the character as a tuple
+                (cur hp, max hp)
+    """
+
     def __init__(self, con_hp: int = 100, base_hp: int = 90):
         """Create a new `character.Health` object with `con_hp` and `base_hp` values.
 
@@ -427,11 +459,16 @@ class Health:
             return (self.cur_hp, self.max_hp)
 
     def __str__(self):
+        """
+        Return a string with current hp / max hp (literal)
+        """
         return f"{self.cur_hp} / {self.max_hp}"
 
     def __eq__(self, other=None) -> bool:
-        """Returns equal if other is a `character.Health` and the cur_hp and base_hp
-        values are the same for both objects."""
+        """
+        Returns equal if other is a `character.Health` and the cur_hp and base_hp
+        values are the same for both objects.
+        """
         if not isinstance(other, Health):
             return False
         return self.cur_hp == other.cur_hp and \
@@ -439,15 +476,36 @@ class Health:
 
 
 class bt_Class:
+    """
+    Superclass for character classes. Inherited by each specific class.
+
+    Generally not intended to be used on its own when making characters. Use
+    the sub-classes instead as the default values for this class may not work
+    properly with all application functionality.
+
+    config.data['classes'] contains a list of available classes (as strings).
+
+    Attributes
+    ----------
+    name        The name of the class.
+
+    stats       A `character.Stats` object with the classes stats.
+
+    def_stats   The default stat array for the class
+    """
+
     def __init__(self, name: str = None, stats: Stats = Stats()):
-        """Create a new bt_class object with its name as name and its stats as stats.
+        """
+        Create a new bt_class object with its name as name and its stats as stats.
 
         Parameters
         ----------
         name    The name of the class to use. A list of current classes is
                     available in `config.data['classes']`
+
         stats   The `character.Stats` object for this character. If None is specified
-                    the default constructor with all stats as 0 is called."""
+                    the default constructor with all stats as 0 is called.
+        """
         self.name = name
         self.stats = stats
         match name:
@@ -658,8 +716,6 @@ class Paladin(bt_Class):
 
 class Villager(bt_Class):
     def __init__(self):
-        """The constructor initialized the object with the class name 'villager' and
-            sets the base stats using `def_stas`"""
         self.name = "villager"
         base_stats = self.def_stats
         super(Villager, self).__init__(self.name, base_stats)
@@ -686,6 +742,150 @@ class Villager(bt_Class):
             return 1.0
 
 
+class Inventory:
+    """
+    Inventory container to hold all your precious loot.
+
+    Contains info on the items a character holds but has not equipped.
+    Additionally contains the characters wealth (coins).
+
+    Attributes
+    ----------
+    contents    The contents of the inventory. Returns a
+        list of `item.Equipment`
+
+    gold        The amount of coins the character currently holds
+    """
+    items = []
+    coins = 0
+    index = -1
+
+    def __init__(self, items: list = [], coins: int = 0):
+        """
+        Construct a new inventory object. By default the inventory is
+        empty and contains 0 coins.
+        """
+        self.index = -1
+        self.coins = coins
+
+    @property
+    def contents(self) -> list:
+        """Return a string of the names of items in the inventory"""
+        out = []
+        for i in self.items:
+            if not isinstance(i, item.Item):
+                raise TypeError("how did you get that in there?")
+            out.append(i)
+        return out
+
+    def add_item(self, value: item.Equipment = None) -> list:
+        """
+        Add an item to the inventory container.
+
+        Add an item to the inventory and then return the current contents
+        of the inventory.
+
+        Parameters
+        ---------- 
+        value   An item.Equipment object to insert
+        """
+        if not isinstance(value, item.Item):
+            raise TypeError("You can't put that in your backpack")
+        self.items.append(value)
+        return self.items
+
+    def del_item(self, value: item.Item = None) -> list:
+        """
+        Remove an item from the inventory container.
+
+        Remove an item from the inventory and then return the current contents
+        of the inventory.
+
+        Parameters
+        ---------- 
+        value   An item.Equipment object to remove
+        """
+        if not isinstance(value, item.Item):
+            raise TypeError("You can't remove that from your backpack")
+        for i in self.items:
+            if i == value:
+                self.items.remove(i)
+            else:
+                continue
+        return self.items
+
+    @property
+    def gold(self) -> int:
+        """
+        Return the current coin count for the inventory
+        """
+        return self.coins
+
+    @gold.setter
+    def gold(self, value: int = 0):
+        """
+        Set the amount of coins in the inventory.
+
+        Parameters
+        ----------
+        value   The amount to set the inventory contents to.
+
+        """
+        if not isinstance(value, int):
+            raise TypeError("int not passed to gold")
+        if value >= 0:
+            self.coins = value
+        else:
+            raise ValueError("why do you want to be in debt?")
+
+    def change_gold(self, value: int = 0) -> int:
+        """"
+        Update the amount of coins in the inventory.
+
+        Parameters
+        ----------
+        value   The amount to change the coins value by. Any int is acceptable.
+        """
+        if not isinstance(value, int):
+            raise TypeError("int not passed to change_gold")
+        if self.coins + value < 0:
+            raise ValueError("why do you want to be in debt?")
+        else:
+            self.coins += value
+            return self.coins
+
+    def __str__(self) -> str:
+        """
+        Return a stirng with the inventory's contents.
+
+        Coin count is NOT included in this information.
+        """
+        return str(*self.items)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self.index += 1
+        return self.items[self.index]
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Inventory):
+            return TypeError("that's not an inventory")
+        temp = other.items.copy()  # be safe
+        for i in temp:
+            if not isinstance(i, item.Item):
+                raise TypeError("how did that get in here?")
+            if i in self.items:
+                temp.remove(i)
+            else:
+                return False
+        if len(temp) == 0:
+            return True
+        else:
+            return False
+
+
 class Character:
     """The hero of the story! Contains all the important information.
 
@@ -694,19 +894,26 @@ class Character:
     able to snag all the information out of the DB create a `character.Gear`
     and a `character.Stat` then hand it all off to this object's constructor.
 
-    Attributes:
-        name        Who are you?
-        level       `character.Level` for this character
-        stats       `character.Stats` for this character
-        gear        `character.Gear` for this character
-        health      `chararacter.Health` for this character
-        bt_class    class (NYI)
-        """
+    Attributes
+    ----------
+    name        Who are you?
+
+    level       `character.Level` for this character
+
+    stats       `character.Stats` for this character
+
+    gear        `character.Gear` for this character
+
+    health      `chararacter.Health` for this character
+
+    bt_class    The `character.bt_class` set for this character.
+    """
     def __init__(self, name: str,
                  level: Level = Level(0, 0),
                  gear_block: Gear = Gear(),
                  class_choice: bt_Class = bt_Class('warrior'),
-                 health: Health = None):
+                 health: Health = None
+                 ):
         """Construct a new character object
 
         All statistics for a character can be supplied in the constructor.
@@ -723,11 +930,13 @@ class Character:
                         by `bt_class.__init__()` if not specified.
         gear        The `character.Gear` object to use for this character.
                         New characters generally will be naked, with no items equipped.
-        bt_class    The character's class"""
+        bt_class    The character's class
+        """
         self._level = level
         self._name = name
         self._gear = gear_block
         self._bt_class = class_choice
+        self._inventory = Inventory([], 10)
         if health is not None:
             self.hp = health
         else:
@@ -772,7 +981,7 @@ class Character:
                 self.hp.recalc_hp(value)
             self._bt_class.stats = value
         else:
-            raise ValueError("Stats must be a Stats.")
+            raise TypeError("Stats must be a Stats object")
     #  End Stats
 
     #  Gear
@@ -785,10 +994,24 @@ class Character:
         if isinstance(value, Gear):
             self._gear = value
         else:
-            raise ValueError("Gear must be a Gear.")
+            raise TypeError("Gear must be a Gear object")
     #  End Gear
 
-    # ATK & DEF
+    #  Inventory
+    @property
+    def inventory(self) -> Inventory:
+        return self._inventory
+
+    @inventory.setter
+    def inventory(self, value: Inventory):
+        if isinstance(value, Inventory):
+            self._inventory = value
+        else:
+            raise TypeError("Inventory must be an Inventory object")
+
+    #  End Inventory
+
+    #  ATK & DEF
     @property
     def attack(self) -> int:
         """The character's attack value.
@@ -827,6 +1050,7 @@ class Character:
         for g in gear_stats:
             defense += g
         return int(base + (main_stat + defense) * .15)
+    #  End Attack and Defense
 
     #  character.Character internal/inherited funcs #
 
@@ -836,17 +1060,18 @@ class Character:
         Returns a string containing the name, level, health, and stats for the character"""
         # \u2764\ufe0f is red heart emoji
         # \u2618\ufe0f is the colorized shamrock emoji
-        stat_str = f"Strength \N{flexed biceps}: {self._bt_class.stats.strength}\n"\
-                   f"Agility \N{athletic shoe}: {self._bt_class.stats.agility}\n"\
-                   f"Intellect \N{brain}: {self._bt_class.stats.intellect}\n"\
-                   f"Charisma \N{high voltage sign}: {self._bt_class.stats.intellect}\n"\
-                   f"Constitution \N{bear face}: {self._bt_class.stats.charisma}\n"\
-                   f"Luck \u2618\ufe0f: {self._bt_class.stats.luck}\n"
+        stat_str = f"Strength 💪: {self._bt_class.stats.strength}\n"\
+                   f"Agility 👟: {self._bt_class.stats.agility}\n"\
+                   f"Intellect 🧠: {self._bt_class.stats.intellect}\n"\
+                   f"Charisma ⚡: {self._bt_class.stats.intellect}\n"\
+                   f"Constitution 🐻: {self._bt_class.stats.charisma}\n"\
+                   f"Luck ☘️: {self._bt_class.stats.luck}\n"
 
         return f"Character: {self._name}\n" \
-               f"Class: {self._bt_class}\n"\
-               f"Health \u2764\ufe0f: {self.hp}\n\n"\
                f"Level: {self._level}\n" \
+               f"Class: {self._bt_class}\n" \
+               f"Gold 💰: {self._inventory.coins}\n" \
+               f"Health ❤️: {self.hp}\n\n" \
                f"Stats\n------\n{stat_str}\n"
 
     def __eq__(self, other) -> bool:
@@ -854,5 +1079,7 @@ class Character:
             `gear` and `bt_class` attributes are equal."""
         if isinstance(other, Character):
             return self.name == other.name and self.level == other.level \
-                and self.gear == other.gear and self._bt_class == other._bt_class
+                and self.gear == other.gear \
+                and self._bt_class == other._bt_class \
+                and self.inventory == other.inventory
         return False
