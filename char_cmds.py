@@ -167,7 +167,7 @@ class character_Commands(commands.Cog):
 
     @character_command_group.command(
         description="Set your active character.",
-        help="Set your active character. You can get a "\
+        help="Set your active character. You can get a "
              "list of your characters with /character list",
         brief="Set your active character.",
         aliases=["set_active"]

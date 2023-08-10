@@ -5,13 +5,13 @@ class Item:
 
     def __str__(self):
         return self.name
-    
+
     def __eq__(self, other):
         if not isinstance(other, Item):
             return False
         else:
             return self.name == other.name
-        
+
     def __lt__(self, other):
         if not isinstance(other, Item):
             return False
