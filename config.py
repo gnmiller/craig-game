@@ -1,4 +1,6 @@
 from dotenv import dotenv_values
+import random
+
 
 max_characters = 10
 """
@@ -28,3 +30,13 @@ data = {
     'debug_guilds': [1136708527797309500],
     'classes': ['warrior', 'rogue', 'wizard', 'villager', 'paladin', 'trader']
 }
+
+
+def crit(diff: int, luck: int) -> bool:
+    val = random.randint(1, 20)
+    if not isinstance(diff, int) or not isinstance(luck, int):
+        raise TypeError("crit this Sussy")
+    if val+(luck/2) >= diff:
+        return True
+    else:
+        return False
