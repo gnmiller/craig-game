@@ -77,7 +77,7 @@ class adminCommands(commands.Cog):
 
         Parameters
         ----------
-        ctx     The discord context object for the command
+        ctx:     The discord context object for the command
         """
         path = f"./{config.data['data_dir']}/"
         try:
@@ -106,7 +106,7 @@ class adminCommands(commands.Cog):
 
         Parameters
         ----------
-        ctx     The discord context object for the command
+        ctx:     The discord context object for the command
         """
         try:
             data_dir = f"./{config.data['data_dir']}"
@@ -157,6 +157,11 @@ class adminCommands(commands.Cog):
                       user: discord.Option(str,
                                            description="Mention a user",
                                            required=False)):
+        """
+        Set a user's coin count.
+
+        Explicitly set the amount of exp a user has.
+        """
         user_id = ""
         try:
             for m in ctx.mentions:

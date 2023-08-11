@@ -16,25 +16,44 @@ class characterCommands(commands.Cog):
 
     Holds commands for interacting with a user's character such as
     creating, deleting, and swapping.
+
+    Attributes
+    ----------
+    None
+
+    Methods
+    ----------
+    create(ctx, name, c_name):
+        Create a new character named name with class specified in c_name.
+    list(ctx, user_id):
+        List out all characters for user_id
+    delete(ctx, name):
+        Delete a characted named name.
+    whoami(ctx):
+        Return the player's active character.
+    set(ctx, char):
+        Set the player's active character.
     """
     character_command_group = SlashCommandGroup(name='character',
                                                 description='Commands for interacting '
                                                 'with your character(s).')
 
     def __init__(self, bot):
-        """Construct the character_Commands cog.
+        """
+        Construct the character_Commands cog.
 
-        This Cog provides commands for interacting with a user's characters such as
-        creating, deleting and setting the current character to use.
+        This Cog provides commands for interacting with a user's characters
+        such as creating, deleting and setting the current character to use.
 
-        By default this Cog expects that the following directories will exist:
+        By default this :class:`discord.Cog` expects that the following
+        directories will exist:
             ./rpg-data
             ./rpg-data/characters/
             ./rpg-data/active/
         These should be created in on_ready() (or before running the bot)
         The values for these directories can be customized in config.py by
-        modifying their values in config.data. These are expected to be plain names
-        with no OS special characters.
+        modifying their values in config.data. These are expected to be plain
+        names with no OS special characters.
         Ex:
             config.data['data_dir'] = 'rpg-data' GOOD
             config.data['data_dir'] = '/rpg-data' BAD
@@ -42,6 +61,9 @@ class characterCommands(commands.Cog):
         self.bot = bot
 
     def get_class_types(ctx: discord.AutocompleteContext):
+        """
+        Return a list of possible classes.
+        """
         return ['warrior', 'rogue', 'wizard', 'villager', 'paladin', 'trader']
 
     @character_command_group.command(
@@ -58,23 +80,30 @@ class characterCommands(commands.Cog):
                      c_name: discord.Option(str,
                                             description="choose your class",
                                             autocomplete=discord.utils.basic_autocomplete(get_class_types))):
-        """Create a new character
+        """
+        Create a new character
 
         Attempt to create a new character in the associated file structure.
-            By default characters are stored in
-            ./rpg-data/characters/<discord user_id>/<character name>.pickle.
-            This is customizable in config.data via the data_dir, char_dir, and file_ext options.
+        By default characters are stored in
+        ./rpg-data/characters/<discord user_id>/<character name>.pickle.
+        This is customizable in config.data via the data_dir, char_dir, 
+        and file_ext options.
 
-        A new `character.Character` object is contructed via `create_char()`
-            then passed to `save_char()`.
+        A new :class:`character.Character` object is contructed via :func:
+        `create_char()` then passed to :funcs:`save_char()`.
 
-        The object returned from `create_char()` is sent to the user.
+        The object returned from :func:`create_char()` is sent to the user.
 
-        Paramters
+        Parameters
         ---------
-        ctx     The discord context object for the command
-        name    The character's name
-        c_name  The character's class
+        ctx:    :class:`discord.ApplicationContext`
+            The discord context object for the command
+        name:   :class:`discord.Option`
+            A `discord.Option` that accepts a :type:`str` as the
+            character name to create.
+        c_name: :class:`discord.Option`
+            A `discord.Option` that accepts a :type:`str` as the
+            character class.
         """
         try:
             new_char = create_char(user_id=ctx.author.id, name=name, c_name=c_name, )
@@ -92,16 +121,21 @@ class characterCommands(commands.Cog):
                    user_id: discord.Option(str,
                                            description="check a specific user's characters",
                                            required=False)):
-        """List a user's characters.
+        """
+        List a user's characters.
 
-        Attempt to produce a listing of all character's for a given user. By default assumes
-            you want the user that sent the message's characters. A user id may be supplied to
-            list characters for another user.
+        Attempt to produce a listing of all character's for a given user.
+        By default assumes you want the user that sent the message's
+        characters. A user id may be supplied to list characters for
+        another user.
 
         Parameters
         ----------
-        ctx     The discord context object for the command
-        user_id The user's discord user id
+        ctx:    :class:`discord.ApplicationContext`
+            The discord context object for the command
+        user_id:   :class:`discord.Option`
+            A `discord.Option` that accepts a :type:`str` as the
+            user_id to lookup.
         """
         try:
             char_list = get_chars(ctx.author.id)
@@ -127,17 +161,22 @@ class characterCommands(commands.Cog):
                      ctx: discord.ApplicationContext,
                      name: discord.Option(str, description='Which character do you want to delete?',
                                           required=True)):
-        """Delete a character.
+        """
+        Delete a character.
 
         Attempt to delete a character for a given user. By default will look in
         ./rpg-data/characters/ctx.author.id/<name>
         for the character file. If a file with the correct name is found
-        it is removed via `del_char()`
+        it is removed via :funcs:`del_char()`
 
         Parameters
         ----------
-        ctx     The discord context object for the command
-        name    The character name to remove
+        ctx:    :class:`discord.ApplicationContext`
+            The discord context object for the command
+        name:   :class:`discord.Option`
+            A `discord.Option` that accepts a :type:`str` as the
+            character name to delete.
+        c_name: :class:`discord.Option`
         """
         try:
             deleted_char = del_char(ctx.author.id, name)
@@ -154,14 +193,18 @@ class characterCommands(commands.Cog):
         aliases=["active"]
     )
     async def whoami(self, ctx: discord.ApplicationContext):
-        """Print out the current active character.
+        """
+        Print out the current active character.
 
-        Looks in ./rpg-data/active/ for a file with the user's ID (ctx.author.id).
-        If none is found a FileNotFoundError will be raised.
+        Looks in ./rpg-data/active/ for a file with the user's ID
+        (ctx.author.id). If none is found a :exception:`FileNotFoundError`
+        will be raised.
 
         Parameters
         ----------
-        ctx The discord context object for the command"""
+        ctx:    :class:`discord.ApplicationContext`
+            The discord context object for the command
+        """
         try:
             active_char = get_active(ctx.author.id)
             await ctx.respond("```"
@@ -184,12 +227,24 @@ class characterCommands(commands.Cog):
                   char: discord.Option(str,
                                        description="Enter the name of the character you wish to swap to.",
                                        required=True)):
-        """Set the user's active character.
+        """
+        Set the user's active character.
 
         Parameters
         ----------
-        ctx     The discord context object for the command
-        name    The name of the character to make active"""
+        ctx:    :class:`discord.ApplicationContext`
+            The discord context object for the command
+        name:   :class:`discord.Option`
+        A `discord.Option` that accepts a :type:`str` as the
+            character name to set active
+
+        Raises
+        ------
+        FileNotFoundError:
+            When the specified character failed to be loaded from disk or when
+            when the new file failed to be written to the active character
+            directory.
+        """
         try:
             active_char = get_active(ctx.author.id)
             loaded_char = load_char(ctx.author.id, char)
@@ -197,8 +252,9 @@ class characterCommands(commands.Cog):
             new_active = get_active(ctx.author.id)
             await ctx.respond(f"Changing active character for {ctx.author.mention}\n"
                               f"```Old\n----\n{active_char}\n\nNew\n----\n{new_active}```")
-        except Exception as e:
-            raise Exception(e)
+        except FileNotFoundError as e:
+            await ctx.respond("```Could not make that your active character!\n"
+                              f"Reason: {e}```")
 
 
 def create_char(user_id: str, name: str, c_name: str) -> character.Character:
@@ -217,12 +273,21 @@ def create_char(user_id: str, name: str, c_name: str) -> character.Character:
 
     Parameters
     ----------
-    user_id     The user's Discord ID (eg ctx.author.id)
+    user_id: :type:`str`
+        The user's Discord ID (eg ctx.author.id)
+    name:   :type:`str`
+        The name for the new character
+    c_name: :type:`str`
+        The new character's class. For a list of classes see
+        `config.data['classes']`
 
-    name        The name for the new character
-
-    c_name      The new character's class. For a list of classes see
-                    `config.data['classes']`
+    Raises
+    ------
+    FileExistsError:
+        If the character file already exists.
+    FileNotFoundError:
+        If the character file could not be saved, or
+        if it could be made active.
     """
     dir_path, char_file = get_paths(user_id, name)
     f = None
@@ -263,7 +328,13 @@ def get_chars(user_id: str):
 
     Parameters
     ----------
-    name        The name for the new character
+    name    :type:`str`
+        The name for the new character
+
+    Raises
+    ------
+    FileNotFoundError:
+        If the directory for the user id could not be found.
     """
     dir_path, _ = get_paths(user_id, None)
     chars = []
@@ -291,9 +362,16 @@ def save_char(user_id: str, char: character.Character):
 
     Parameters
     ----------
-    user_id     The user's Discord ID (eg ctx.author.id)
+    user_id: :type:`str`
+        The user's Discord ID (eg ctx.author.id)
 
-    char        The `character.Character` object being written to disk.
+    char    :class:`character.Character`
+        The character data being saved.
+
+    Raises
+    ------
+    FileNotFoundError:
+        If the character file could not be written.
     """
     _, char_file = get_paths(user_id, char.name)
     f = None
@@ -320,9 +398,16 @@ def del_char(user_id: str, char: str) -> character.Character:
 
     Parameters
     ----------
-    user_id     user_id     The user's Discord ID (eg ctx.author.id
+    user_id: :type:`str`
+        The user's Discord ID (eg ctx.author.id)
 
-    char        The `character.Character` object being deleted.
+    char    :type:`str`
+        The character data being saved
+
+    Raises
+    ------
+    FileNotFoundError:
+        If the character file does not exist at the expected location.
     """
     if isinstance(char, character.Character):
         name = char.name
@@ -342,14 +427,21 @@ def load_char(user_id: str, name: str) -> character.Character:
     Load a character.
 
     Attempt to load a character from the file structure. Data
-    directories are specified in `config.data` A `character.Character` object
+    directories are specified in `config.data` A :class:`character.Character` object
     is returned upon success.
 
     Parameters
     ----------
-    user_id     user_id     The user's Discord ID (eg ctx.author.id
+    user_id: :type:`str`
+        The user's Discord ID (eg ctx.author.id)
 
-    name        The name of the character to load.
+    name    :type:`str`
+        The name for the new character.
+
+    Raises
+    ------
+    FileNotFoundError:
+        If the character file being loaded could not be found.
     """
     _, char_file = get_paths(user_id, name)
     try:
@@ -372,9 +464,11 @@ def set_active(user_id: str, c: character.Character, choice: int = -1):
 
     Parameters
     ----------
-    user_id     The user's Discord ID (eg ctx.author.id
+    user_id: :type:`str`
+        The user's Discord ID (eg ctx.author.id)
 
-    char        The `character.Character` object to make the active character.
+    char    :class:`character.Character`
+        The character data being saved.
 
     choice      Unused
     """
@@ -409,7 +503,14 @@ def get_active(user_id: str) -> character.Character:
 
     Parameters
     ----------
-    user_id     The user's Discord ID (eg ctx.author.id
+    user_id: :type:`str`
+        The user's Discord ID (eg ctx.author.id)
+
+    Raises
+    ------
+    FileNotFoundError:
+        If there is nol active character, or the file could not be
+        openned.
     """
     path = f"./{config.data['data_dir']}/{config.data['active_dir']}"
     active_path = f"{path}/{user_id}.{config.data['file_ext']}"
@@ -431,7 +532,8 @@ def get_char_count(user_id: int = 0):
 
     Parameters
     ----------
-    user_id     The user's Discord ID (eg ctx.author.id
+    user_id: :type:`str`
+        The user's Discord ID (eg ctx.author.id)
     """
     return len(get_chars(user_id))
 
@@ -444,7 +546,8 @@ def get_class(name: str) -> character.bt_Class:
 
     Parameters
     ----------
-    name        The name of the class you are creating.
+    name:   :type:`str:
+        The name of the class you are creating.
     """
     match name:
         case 'warrior':
@@ -481,9 +584,11 @@ def get_paths(user_id: str, name: str):
 
     Parameters
     ----------
-    user_id     user_id     The user's Discord ID (eg ctx.author.id)
+    user_id: :type:`str`
+        The user's Discord ID (eg ctx.author.id)
 
-    name        The name of the character you want to build a path for.
+    name    :type:`str`
+        The name of the character.
     """
     dir_path = f"./{config.data['data_dir']}/{config.data['char_dir']}/{user_id}"
     char_file = f"{dir_path}/{name}.{config.data['file_ext']}"

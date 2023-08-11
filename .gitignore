@@ -11,3 +11,4 @@ rpg-data/
 *.sql
 item_gen.py
 *sql*
+*.txt

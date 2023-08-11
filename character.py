@@ -9,19 +9,22 @@ class Stats:
 
     Attributes
     ----------
-    strength        Character's strength
+    strength:       :type:`int`
+        Character's strength
+    agility:        :type:`int`
+        Character's agility
+    intellect:      :type:`int`
+        Character's intellect
+    charisma:      :type:`int`
+        Character's charisma
+    constitution:   :type:`int`
+        Character's constitution
+    luck:           :type:`int`
+        Character's luck
 
-    agility         Character's agility
-
-    intellect       Character's intellect
-
-    charisma        Character's charisma
-
-    constitution    Character's constitution
-
-    luck            Character's luck
-
-    inventory       The character's inventory (NYI)
+    Methods
+    -------
+    None
     """
 
     def __init__(self, strength=0, agility=0, intellect=0,
@@ -31,17 +34,18 @@ class Stats:
 
         Parameters
         ----------
-        strength    Starting strength value.
-
-        agility    Starting agility value.
-
-        intellect    Starting intellect value.
-
-        charisma    Starting charisma value.
-
-        constitution    Starting constitution value.
-
-        luck    Starting luck value.
+        strength:       int
+            Starting strength value.
+        agility:        int
+            Starting agility value.
+        intellect:      int
+            Starting intellect value.
+        charisma:       int
+            Starting charisma value.
+        constitution:   int
+            Starting constitution value.
+        luck:           int
+            Starting luck value.
         """
         self._strength = strength
         self._agility = agility
@@ -124,12 +128,12 @@ class Stats:
         """
         Iterate over the stats of this object.
 
-        Iterates over vars(self). Using the data provided by vars()
+        Iterates over vars(self). Using the data provided by :func:`vars()`
         the iterator tries to lookup the key name (stat name), and
         then pulls the corresponding value from vars(). Meant to be
         scalable for new stats in the future.
-        May have unexpected results if vars() does not provide a consistent
-        ordering of the objects.
+        May have unexpected results if :func:`vars()` does not provide a
+        consistent ordering of the objects.
         """
         if self._index < len(vars(self).keys()):
             key = list(vars(self).keys())[self._index]
@@ -145,9 +149,17 @@ class Stats:
 
     def __eq__(self, other):
         """
-        Return equals if other is a `character.Stats` and it has equal properties of
-        strength, agility, intellect, charisma, constitution, and luck otherwise will
-        return False.
+        Compare two :class:`Stats` objects for equality.
+
+        Parameters
+        ----------
+        other:  :class:`Stats`
+            The :class:`Stats` object to compare this on against.
+
+        Returns
+        -------
+        True if both objects have the same attributes.
+        False otherwise or an object that is not a `Stats` is passed.
         """
         if isinstance(other, Stats):
             return self.strength == other.strength and \
@@ -162,27 +174,43 @@ class Stats:
 class Gear:
     """Container for a character's equipped items.
 
-    This is effectively a container for `item.Equipment` objects. Each
+    This is effectively a container for :class:`item.Equipment` objects. Each
     property is intended to hold a single `item.Equipment` with an
-    `item.Slot` corresponding to the attribute name.
+    :class:`item.Slot` corresponding to the attribute name.
 
-    Attributes:
-        head Helmet equipment
-        chest Chest armor
-        arms Bracer/arm armor
-        legs Leg armor
-        hands Gloves
-        rings A list of two rings.
-        trinket A special trinket (ooo fancy)
-        weapon A weapon
-        oh Another weapon, or maybe a shield?
+    Attributes
+    ----------
+    head:       :class:`item.Head`
+        Helmet equipment
+    chest:      :class:`item.Chest`
+        Chest armor
+    arms:       :class:`item.Arms`
+        Bracer/arm armor
+    legs:       :class:`item.Legs`
+        Leg armor
+    hands:      :class:`item.Hands`
+        Gloves
+    rings:      :type:`list`
+        A list of two rings.
+    trinket:    :class:`item.Trinket`
+        A special trinket (ooo fancy)
+    weapon:     :class:`item.Weapon`
+        A weapon
+    oh:         :class:`item.OffHand`
+        Another weapon, or maybe a shield?
+
+    Methods
+    -------
+    None
     """
 
     def __init__(self):
-        """Create a new Gear container for a character.
+        """
+        Create a new :class:`Gear` container for a character.
 
         You start naked! No default values are assigned by the constructor.
-        Except in the case of rings which is assigned an empty list."""
+        Except in the case of rings which is assigned an empty list.
+        """
         self._head = None
         self._chest = None
         self._arms = None
@@ -305,9 +333,26 @@ class Gear:
                 raise StopIteration
 
     def __eq__(self, other):
-        """Checks each `item.Item` in the `character.Gear` individually for euality.
-        If other is a `character.Gear` and each item is equal will return True otherwise
-        returns False"""
+        """
+        Compare two :class:`Gear` objects for equality.
+
+        Checks each :class:`item.Item` in the :class:`character.Gear`
+        individually for equality.
+
+        Parameters
+        ----------
+        other:  :class:`Gear`
+            Gear object to compare this one against.
+
+        Returns
+        -------
+        True:
+            If all items in the :class:`Gear` are equal per
+            :func:`item.Equipment.__eq__()`
+        False:
+            If a non :class:`Gear` is passed as other or any 
+        items in the container are not equal.
+        """
         if not isinstance(other, Gear):
             return False
         return (self.head == other.head and
@@ -321,8 +366,13 @@ class Gear:
                 self.oh == other.oh)
 
     def __str__(self):
-        """Return a string representation of the Gear object. Each `item.Item` in the
-        `character.Gear` is evaluated individually."""
+        """
+        Return the string representation of the :class:`Gear`.
+
+        Return a string representation of the :class:`Gear` object. Each
+        :class:`item.Item` in the :class:`character.Gear` is evaluated
+        individually.
+        """
         if self.rings == []:
             ring_str = None
         else:
@@ -344,9 +394,23 @@ class Level:
     An object containing the character's current level
     and experience amount.
 
-    Attributes:
-        cur_level   The character's current level as an integer
-        exp         The character's experience count as an integer
+    TODO ensure that current_experience cannot exceed max
+    TODO ensure current level matches experience value
+
+    Attributes
+    ----------
+    cur_level:  :type:`int`
+        The character's current level as an integer
+    exp:        :type:`int`
+        The character's experience count as an integer
+
+    Methods
+    -------
+    get_next():
+        Returns the amount of experience needed to level up. This is the TOTAL
+        amount required. Not the difference needed.
+    check_next():
+        Returns if current experience value if greater than get_next()
     """
 
     def __init__(self, cur_level: int = 0, exp: int = 0):
@@ -356,13 +420,18 @@ class Level:
 
         Parameters
         ----------
-            cur_level   The character's current level
-            exp         The character's current experience amount"""
+        cur_level:  :type:`int`
+            The character's current level
+        exp:        :type:`int`
+            The character's current experience amount"""
         self._cur_level = cur_level
         self._exp = exp
 
     def get_next(self):
-        """Returns the exp needed for the next level for this `character.Level"""
+        """
+        Returns the exp needed for the next level for this 
+        :class:`character.Level`.
+        """
         t = 100
         b = .15
         x = self.cur_level
@@ -370,6 +439,7 @@ class Level:
         return math.ceil(y)
 
     def check_next(self):
+        """Check if enough experience has been accrued to level up."""
         return self.exp > self.get_next()
 
     @property
@@ -409,8 +479,27 @@ class Level:
         return str(self.cur_level)
 
     def __eq__(self, other=None) -> bool:
-        """Returns equal if a character.Level is passed in and the `character.Level.cur_level`
-        are equal."""
+        """
+        Compare two :class:`Level` objects for equality.
+
+        Only checks if the level is equal. If experience values
+        differ will still return True.
+
+        TODO: Update this to check exp values too?
+
+        Parameters
+        ----------
+        other:  :class:`Level`
+            Level object to compare this one against.
+
+        Returns
+        -------
+        True:
+            If each :class:`Level` has the same cur_level attribute.
+        False:
+            If the cur_level's are different or a non-:class:`Level`
+            is passed as other.
+        """
         if not isinstance(other, Level):
             return False
         return self.cur_level == other.cur_level
@@ -421,8 +510,15 @@ class Health:
     Contains the health information for a character.
 
     Attributes
-        hp  Contains current and max HP values for the character as a tuple
-                (cur hp, max hp)
+    ----------
+    hp: :type:`tuple`
+        Contains current and max HP values for the character as a tuple
+        (cur hp, max hp)
+
+    Methods
+    -------
+    recalc_hp(s):
+        Determine the correct value of max_hp and adjust cur_hp accordingly.
     """
 
     def __init__(self, con_hp: int = 100, base_hp: int = 90):
@@ -446,7 +542,8 @@ class Health:
         return self.cur_hp
 
     def recalc_hp(self, s: Stats = None):
-        """Recalculate the max and current HP given a new stat block.
+        """
+        Recalculate the max and current HP given a new stat block.
 
         Current HP is set as the percentage of the new max HP. This would
         generally be used when leveling up a charcter or otherwise adjusting
@@ -454,7 +551,13 @@ class Health:
 
         Parameters
         ----------
-        s   The new stat block to calculate HP based on"""
+        s:  :class:`Stats`
+            The new stat block to calculate HP based on
+
+        Returns
+        -------
+        A :type:`tuple` containing the new HP values (cur, max)
+        """
         if not isinstance(s, Stats):
             raise TypeError("Stats object not passed to recalc_hp")
         else:
@@ -471,8 +574,23 @@ class Health:
 
     def __eq__(self, other=None) -> bool:
         """
-        Returns equal if other is a `character.Health` and the cur_hp and base_hp
-        values are the same for both objects.
+        Compare two :class:`Health` objects for equality.
+
+        Both current and max hp are checked for equality.
+        Returns True if both are equal, otherwise returns
+        false.
+
+        Parameters
+        ----------
+        other:  :class:`Health`
+            Health object to compare this one against.
+
+        Returns
+        -------
+        True:
+            If current and max HP values are the same for both objects.
+        False:
+            If either value differs or an invalid object is passed in as other.
         """
         if not isinstance(other, Health):
             return False
@@ -492,11 +610,24 @@ class bt_Class:
 
     Attributes
     ----------
-    name        The name of the class.
+    name:        :type:`str`
+        The name of the class.
+    stats:       :class:`Stats`
+        A :class:`character.Stats` object with the classes stats.
+    def_stats:  :class:`Stats`
+        The default stat array for the class
 
-    stats       A `character.Stats` object with the classes stats.
-
-    def_stats   The default stat array for the class
+    Methods
+    -------
+    get_gear_stats(g):
+        Get the amount of bonus main stat provided by equipped
+        :class:`item.Equipment`.
+    attack_bonus(g):
+        Get how much bonus attack damage is provided by equipped
+        :class:`Gear`
+    defense_bonus(g) -- NYI:
+        Get how much bonus damage reduction is provided by equipped
+        :class:`Gear`
     """
 
     def __init__(self, name: str = None, stats: Stats = Stats()):
@@ -540,14 +671,24 @@ class bt_Class:
         return Stats()
 
     def get_gear_stats(self, g: Gear = Gear()) -> []:
-        """Return the bonuses for a classes main stat from gear.
+        """
+        Return the bonuses for a classes main stat from gear.
 
         Since only main stat will (currently) affect anything we only
         check the classes 'main' stat.
 
         Parameters
         ----------
-        g The characters `character.Gear` object to inspect"""
+        g:  :class:`Gear`
+            The gear object to extract stats from
+
+        Returns
+        -------
+        :type:`list`:
+            A list containing each gear slots bonus. Bonuses *should* be in
+            the same ordering as the :var:`Item.Slot.slots` dict. This is not
+            ensured however.
+        """
         ret = []
         for i in g:
             if i is None:
@@ -556,14 +697,23 @@ class bt_Class:
         return ret
 
     def attack_bonus(self, g: Gear = Gear()) -> float:
-        """Check if the character is wielding their preferred weapon.
+        """
+        Check if the character is wielding their preferred weapon.
 
-        Returns a float based on if the character is wielding the class's preferred weapon type.
-        If the weapon is of the correct type 1.1 is returned. Otherwise 1.0 is returned.
+        Character's receive a bonus if they are qielding there preferred
+        weapon category. This function checks what weapon they have and
+        determines that bonus.
 
         Parameters
         ----------
-        g   The gear object for the character"""
+        g:  :class:`Gear`
+            The `Gear` object to iterate through.
+
+        Returns
+        -------
+        float:
+            Either 1.1 if the preferred weapon is equipped or 1.0 if not.        
+        """
         if "sword" in g.weapon.name:  # make this more dynamic of a check?
             return 1.1
         else:
@@ -573,6 +723,20 @@ class bt_Class:
         return self.name
 
     def __eq__(self, other):
+        """
+        Compare two :class:`bt_Class` objects for equality.
+
+        Checks the name and :Class:`Stats` objects for equality.
+
+        Parameters
+        ----------
+        other:  :class:`Level`
+            Level object to compare this one against.
+
+        Returns
+        -------
+        True if all stats are equal and the name attribute is the same.
+        """
         if isinstance(other, bt_Class):
             return self.name == other.name and self.stats == other.stats
         return False
@@ -756,11 +920,21 @@ class Inventory:
 
     Attributes
     ----------
-    contents    The contents of the inventory. Returns a
-        list of `item.Equipment`
-    is_empty    Returns true if the inventory is empty, otherwise false.
+    contents:   :type:`list`
+        The contents of the inventory.
+    is_empty:   :type:`bool`
+        Returns true if the inventory is empty, otherwise false.
+    gold:        :type:`int`
+        The amount of coins the character currently holds
 
-    gold        The amount of coins the character currently holds
+    Methods
+    -------
+    add_item(value):
+        Adds value to the inventory.
+    del_item(value):
+        Deletes value from the inventory.
+    change_gold(value):
+        Adjust gold by the amount in value. Can be positive, negative or 0.
     """
     items = []
     coins = 0
@@ -794,7 +968,13 @@ class Inventory:
 
         Parameters
         ----------
-        value   An item.Equipment object to insert
+        value:  :class:`item.Item`
+            An item.Equipment object to insert
+
+        Returns
+        -------
+        :type:`list`:
+            A list containing the current items in the inventory.
         """
         if not isinstance(value, item.Item):
             raise TypeError("You can't put that in your backpack")
@@ -810,7 +990,13 @@ class Inventory:
 
         Parameters
         ----------
-        value   An item.Equipment object to remove
+        value:  :class:`item.Item`
+            An item.Equipment object to remove
+
+        Returns
+        -------
+        :type:`list`:
+            A list containing the current items in the inventory.
         """
         if not isinstance(value, item.Item):
             raise TypeError("You can't remove that from your backpack")
@@ -829,21 +1015,10 @@ class Inventory:
 
     @property
     def gold(self) -> int:
-        """
-        Return the current coin count for the inventory
-        """
         return self.coins
 
     @gold.setter
     def gold(self, value: int = 0):
-        """
-        Set the amount of coins in the inventory.
-
-        Parameters
-        ----------
-        value   The amount to set the inventory contents to.
-
-        """
         if not isinstance(value, int):
             raise TypeError("int not passed to gold")
         if value >= 0:
@@ -857,7 +1032,8 @@ class Inventory:
 
         Parameters
         ----------
-        value   The amount to change the coins value by. Any int is acceptable.
+        value:  :type:`int`
+            The amount to change the coins value by. Any int is acceptable.
         """
         if not isinstance(value, int):
             raise TypeError("int not passed to change_gold")
@@ -868,6 +1044,14 @@ class Inventory:
             return self.coins
 
     def set_gold(self, value: int = 0):
+        """
+        Set the amount of coins in the inventory.
+
+        Parameters
+        ----------
+        value:  :type:`int`
+            The amount to set the inventory contents to.
+        """
         if not isinstance(value, int):
             raise TypeError("int not passed to change_gold")
         self.coins = value
@@ -875,7 +1059,7 @@ class Inventory:
 
     def __str__(self) -> str:
         """
-        Return a stirng with the inventory's contents.
+        Return a string with the inventory's contents.
 
         Coin count is NOT included in this information.
         """
@@ -895,6 +1079,22 @@ class Inventory:
         return self.items[self.index]
 
     def __eq__(self, other) -> bool:
+        """
+        Compare two :class:`Inventory` objects for equality.
+
+        Creates a :class:`collections.Counter` object for `self.items`
+        and `other.items` then compares the created dictionaries for
+        equality.
+
+        Parameters
+        ----------
+        other:  :class:`Inventory`
+            Inventory object to compare this one against.
+
+        Returns
+        -------
+        True if all stats are equal and the name attribute is the same.
+        """
         if not isinstance(other, Inventory):
             return TypeError("that's not an inventory")
         temp = self.items.copy()
@@ -915,31 +1115,32 @@ class Character:
 
     Attributes
     ----------
-    name        Who are you?
-
-    level       `character.Level` for this character
-
-    experience  The character's experience count (from `character.Level`)
-
-    stats       `character.Stats` for this character
-
-    gear        `character.Gear` for this character
-
-    health      `chararacter.Health` for this character
-
-    bt_class    The `character.bt_class` set for this character.
-
-    strength        Character's strength
-
-    agility         Character's agility
-
-    intellect       Character's intellect
-
-    charisma        Character's charisma
-
-    constitution    Character's constitution
-
-    luck            Character's luck
+    name:            :type:`str`
+        Who are you?
+    level:           :type:`int`
+        Character's current level (:var:`Level.cur_level`)
+    experience:      :type:`int`
+        The character's experience count (:var:`Level.cur_exp`)
+    stats:          :class:`character.Stats`
+        This character's stat array (:var:`bt_Class.stats`)
+    gear:           :class:`character.Gear`
+        This character's equipped items.
+    hp:             :type:`int`
+        Character's current health amount. (:var:`Health.cur_hp`)
+    bt_class:       :class:`character.bt_Class` 
+        The class for this character. Contains class name and stats.
+    strength:       :type:`int`        
+        Character's strength
+    agility:        :type:`int`
+        Character's agility
+    intellect:      :type:`int`
+        Character's intellect
+    charisma:       :type:`int`
+        Character's charisma
+    constitution:   :type:`int` 
+        Character's constitution
+    luck:           :type:`int`
+        Character's luck
     """
     def __init__(self, name: str,
                  level: Level = Level(0, 0),
@@ -947,23 +1148,30 @@ class Character:
                  class_choice: bt_Class = bt_Class('warrior'),
                  health: Health = None
                  ):
-        """Construct a new character object
+        """
+        Construct a new character object
 
         All statistics for a character can be supplied in the constructor.
 
-        self.hp is derived from the `character.bt_class` but can also be
-        provided in the constructor if the default values are not sufficient.
+        self.health is derived from the :class:`character.bt_class` but can
+        also be provided in the constructor if the default values are not
+        sufficient.
 
         Parameters
         ----------
-        name        The name of the new character
-        level       The level to use for the new character. By default all
-                        characters will start with level 0 and 0 exp.
-        stats      The stat block to use for the character. Provided
-                        by `bt_class.__init__()` if not specified.
-        gear        The `character.Gear` object to use for this character.
-                        New characters generally will be naked, with no items equipped.
-        bt_class    The character's class
+        name:           :type:`str`   
+            The name of the new character
+        level:          :class:`Level`
+            A :class:`Level` to instantiate this character with. By default
+            will create a :class:`Level` with 0 experience.
+        class_choice    :class:`bt_Class`
+            The selected class for the character. Provides the stats
+            for the character.
+        gear:           :class:`Gear`
+            The equipped items the chaaracter has on. By default contains no
+            equipment.
+        health:         :class:`Health`
+            The character's health, including the max and current values.
         """
         self._level = level
         self._name = name
@@ -971,10 +1179,24 @@ class Character:
         self._bt_class = class_choice
         self._inventory = Inventory([], 10)
         if health is not None:
-            self.hp = health
+            self.health = health
         else:
-            self.hp = Health(self._bt_class.stats.constitution*10)
+            self.health = Health(self._bt_class.stats.constitution*10)
         return
+
+    #  HP
+    @property
+    def hp(self) -> int:
+        return self.health.cur_hp
+
+    @hp.setter
+    def hp(self, value) -> int:
+        if not isinstance(value, int):
+            raise TypeError("provide an int")
+        if value > self.health.max_hp:
+            raise ValueError("you cant have more than your max hp")
+        self.health.cur_hp = value
+        return self.health.cur_hp
 
     #  Level
     @property
@@ -1083,13 +1305,19 @@ class Character:
     #  ATK & DEF
     @property
     def attack(self) -> int:
-        """The character's attack value.
+        """
+        The character's attack value.
 
-        Derived from the character's main stat (`bt_class.main_stat`),
-            and the character's gear stats (`bt_class.get_gear_stats()`).
+        Derived from the character's main stat (:attr:`bt_Class.main_stat`),
+            and the character's gear stats (:func:`bt_Class.get_gear_stats()`).
 
-        Additionally checks `bt_class.attack_bonus()` to see if the character
-            wielding their preferred weapon type"""
+        Additionally checks :func:`bt_class.attack_bonus()` to see if the
+        character is wielding their preferred weapon type.
+
+        Returns
+        -------
+        A :type:`int` of the attack value.
+        """
         base = 10
         # (10 + (main_stat + gear_stats) * .5)
         main_stat = self._bt_class.main_stat
@@ -1107,11 +1335,16 @@ class Character:
     def defense(self) -> int:
         """The character's defense value.
 
-        Derived from the character's main stat (`bt_class.main_stat`),
-            and the character's gear stats (`bt_class.get_gear_stats()`).
+        Derived from the character's main stat (:attr:`bt_Class.main_stat`),
+            and the character's gear stats (:func:`bt_Class.get_gear_stats()`).
 
-        Additionally checks `bt_class.attack_bonus()` to see if the character
-            wielding their preferred weapon type"""
+        Additionally checks :func:`bt_Class.attack_bonus()` to see if the
+        character wielding their preferred weapon type.
+
+        Returns
+        -------
+        A :type:`int` of the defense value.
+        """
         base = 8
         main_stat = self._bt_class.main_stat
         gear_stats = self._bt_class.get_gear_stats(self.gear)
@@ -1128,7 +1361,8 @@ class Character:
 
         Parameters
         ----------
-        value   The amount of experience to add.
+        value:   :type:`int`
+            The amount of experience to add.
         """
         self._level.exp += value
         if self._level.check_next():
@@ -1140,9 +1374,6 @@ class Character:
     def __str__(self) -> str:
         """
         Return a string of character data.
-
-        Returns a string containing the name, level, health, and
-        stats for the character
         """
         # \u2764\ufe0f is red heart emoji
         # \u2618\ufe0f is the colorized shamrock emoji
@@ -1162,8 +1393,20 @@ class Character:
                f"Stats\n------\n{stat_str}\n"
 
     def __eq__(self, other) -> bool:
-        """Returns True if a `character.Character` is passed and the `name`, `level`,
-            `gear` and `bt_class` attributes are equal."""
+        """
+        Compare two :class:`Character` objects for equality.
+
+        Compares the name, level (attribute NOT :class:`Level`), :class:`Gear`
+        :class:`bt_class`, and :class:`Inventory` for self and other.
+
+        If all elements are equal then True is returned. Otherwise False is 
+        returned. If other is not a :class:`Character` False is also returned.
+
+        Parameters
+        ----------
+        other:  :class:`Character`
+            The :class:`Character` to compare the current object with.
+        """
         if isinstance(other, Character):
             return self.name == other.name and self.level == other.level \
                 and self.gear == other.gear \

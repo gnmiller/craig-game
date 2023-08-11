@@ -34,16 +34,32 @@ data = {
 
 
 def crit(diff: int, luck: int) -> bool:
+    """
+    Check if you crit.
+
+    Stealing from Paizo mentality here. If you beat the check by >=10 you crit.
+    Eg diff = 10, randint()-> 18, with +2 bonus -> crit
+
+    Parameters
+    ----------
+    luck        Character's luck stat
+    """
     val = random.randint(1, 20)
     if not isinstance(diff, int) or not isinstance(luck, int):
         raise TypeError("crit this Sussy")
-    if val+(luck/2) >= diff:
+    if val+(luck/2) >= diff+10:
         return True
     else:
         return False
 
 
 def init_data():
+    """
+    Initialize application data directories.
+
+    Helper function for using in admin commands. Not meant
+    to be called on its own.
+    """
     data_dir = f"./{data['data_dir']}"
     if not os.path.isdir(data_dir):
         os.makedirs(data_dir)
