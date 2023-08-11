@@ -28,7 +28,7 @@ data = {
     'file_ext': 'pickle',
     'envs': dotenv_values(".env"),
     'max_characters': 10,
-    'debug_guilds': [1136708527797309500],
+    'debug_guilds': [1136708527797309500, 1139564692755447878],
     'classes': ['warrior', 'rogue', 'wizard', 'villager', 'paladin', 'trader']
 }
 

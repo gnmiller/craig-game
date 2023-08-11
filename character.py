@@ -361,13 +361,18 @@ class Level:
         self._cur_level = cur_level
         self._exp = exp
 
-    def _get_next(self):
+    def get_next(self):
         """Returns the exp needed for the next level for this `character.Level"""
         t = 100
         b = .15
         x = self.cur_level
         y = t * (1 + b) ** x
         return math.ceil(y)
+
+    def check_next(self):
+        print(self.exp)
+        print(self.get_next())
+        return self.exp > self.get_next()
 
     @property
     def cur_level(self) -> int:
@@ -393,7 +398,7 @@ class Level:
 
     @property
     def exp_to_level(self) -> int:
-        return self._exp_to_level
+        return self.get_next() - self.cur_exp
 
     @exp_to_level.setter
     def exp_to_level(self, value: int):
@@ -755,6 +760,7 @@ class Inventory:
     ----------
     contents    The contents of the inventory. Returns a
         list of `item.Equipment`
+    is_empty    Returns true if the inventory is empty, otherwise false.
 
     gold        The amount of coins the character currently holds
     """
@@ -810,12 +816,18 @@ class Inventory:
         """
         if not isinstance(value, item.Item):
             raise TypeError("You can't remove that from your backpack")
-        for i in self.items:
-            if i == value:
-                self.items.remove(i)
-            else:
-                continue
+        try:
+            self.items.remove(value)
+        except ValueError as e:
+            return e
         return self.items
+
+    @property
+    def is_empty(self) -> bool:
+        if len(self.items) == 0:
+            return True
+        else:
+            return False
 
     @property
     def gold(self) -> int:
@@ -857,6 +869,12 @@ class Inventory:
             self.coins += value
             return self.coins
 
+    def set_gold(self, value: int = 0):
+        if not isinstance(value, int):
+            raise TypeError("int not passed to change_gold")
+        self.coins = value
+        return self.coins
+
     def __str__(self) -> str:
         """
         Return a stirng with the inventory's contents.
@@ -869,15 +887,14 @@ class Inventory:
         return out_str[0:len(out_str)-2]
 
     def __iter__(self):
+        self.index = -1
         return self
 
     def __next__(self):
         self.index += 1
-        if self.index > len(self.items)-1:
-            self.index = -1
+        if self.index >= len(self.items):
             raise StopIteration
-        else:
-            return self.items[self.index]
+        return self.items[self.index]
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Inventory):
@@ -885,6 +902,9 @@ class Inventory:
         temp = self.items.copy()
         other_t = other.items.copy()
         return Counter(temp) == Counter(other_t)
+
+    def __len__(self):
+        return len(self.items)
 
 
 class Character:
@@ -901,6 +921,8 @@ class Character:
 
     level       `character.Level` for this character
 
+    experience  The character's experience count (from `character.Level`)
+
     stats       `character.Stats` for this character
 
     gear        `character.Gear` for this character
@@ -908,6 +930,18 @@ class Character:
     health      `chararacter.Health` for this character
 
     bt_class    The `character.bt_class` set for this character.
+
+    strength        Character's strength
+
+    agility         Character's agility
+
+    intellect       Character's intellect
+
+    charisma        Character's charisma
+
+    constitution    Character's constitution
+
+    luck            Character's luck
     """
     def __init__(self, name: str,
                  level: Level = Level(0, 0),
@@ -947,12 +981,12 @@ class Character:
     #  Level
     @property
     def level(self) -> int:
-        return self._level
+        return self._level.cur_level
 
     @level.setter
     def level(self, value):
         if isinstance(value, int) and value > 0:
-            self._level = value
+            self._level.cur_level = value
         else:
             raise ValueError("Level must be a positive integer.")
     #  End Level
@@ -983,6 +1017,42 @@ class Character:
             self._bt_class.stats = value
         else:
             raise TypeError("Stats must be a Stats object")
+
+    @property
+    def strength(self):
+        return self._bt_class.stats.strength
+
+    @property
+    def agility(self):
+        return self._bt_class.stats.agility
+
+    @property
+    def intellect(self):
+        return self._bt_class.stats.intellect
+
+    @property
+    def charisma(self):
+        return self._bt_class.stats.charisma
+
+    @property
+    def constitution(self):
+        return self._bt_class.stats.constitution
+
+    @property
+    def luck(self):
+        return self._bt_class.stats.luck
+
+    @property
+    def experience(self):
+        return self._level.exp
+
+    @experience.setter
+    def experience(self, value: int = 0):
+        if not isinstance(value, int):
+            raise TypeError("provide an int")
+        if value < 0:
+            raise ValueError("exp must be gt 0")
+        self._level.exp = value
     #  End Stats
 
     #  Gear
@@ -1053,13 +1123,27 @@ class Character:
         return int(base + (main_stat + defense) * .15)
     #  End Attack and Defense
 
-    #  character.Character internal/inherited funcs #
+    def gain_exp(self, value: int = 0):
+        """Add exp to the character.
 
+        Gain experience, check if you leveled up and set new level if needed.
+
+        Parameters
+        ----------
+        value   The amount of experience to add.
+        """
+        self._level.exp += value
+        if self._level.check_next():
+            self._level.cur_level += 1
+            # TODO increase stats?
+            # TODO give stat points for player to allocate?
+
+    #  character.Character internal/inherited funcs #
     def __str__(self) -> str:
         """
         Return a string of character data.
 
-        Returns a string containing the name, level, health, and 
+        Returns a string containing the name, level, health, and
         stats for the character
         """
         # \u2764\ufe0f is red heart emoji
@@ -1073,6 +1157,7 @@ class Character:
 
         return f"Character: {self._name}\n" \
                f"Level: {self._level}\n" \
+               f"Exp: {self._level.exp} / {self._level.get_next()}\n" \
                f"Class: {self._bt_class}\n" \
                f"Gold 💰: {self._inventory.coins}\n" \
                f"Health ❤️: {self.hp}\n\n" \

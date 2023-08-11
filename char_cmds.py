@@ -1,15 +1,22 @@
-from discord.ext import commands
-from discord import SlashCommandGroup
-from collections import Counter
-from tabulate import tabulate
-import discord
-import character
 import os
-import config
 import pickle
 
+import character
+import config
+import discord
+from discord import SlashCommandGroup
+from discord.ext import commands
+from tabulate import tabulate
 
-class character_Commands(commands.Cog):
+
+class characterCommands(commands.Cog):
+    """
+    Character Commands Cog
+    ----------------------
+
+    Holds commands for interacting with a user's character such as
+    creating, deleting, and swapping.
+    """
     character_command_group = SlashCommandGroup(name='character',
                                                 description='Commands for interacting '
                                                 'with your character(s).')
@@ -30,7 +37,8 @@ class character_Commands(commands.Cog):
         with no OS special characters.
         Ex:
             config.data['data_dir'] = 'rpg-data' GOOD
-            config.data['data_dir'] = '/rpg-data' BAD"""
+            config.data['data_dir'] = '/rpg-data' BAD
+        """
         self.bot = bot
 
     def get_class_types(ctx: discord.AutocompleteContext):
@@ -192,24 +200,6 @@ class character_Commands(commands.Cog):
         except Exception as e:
             raise Exception(e)
 
-    @character_command_group.command(
-        description="Check your inventory.",
-        help="List the contents of your inventory out.",
-        brief="What in the bag?"
-    )
-    async def inventory(self, ctx: discord.ApplicationContext):
-        """
-        Print out the contents of the character's inventory.
-
-        Parameters
-        ----------
-        ctx     The discord context object for the command
-        """
-        out_str = "```Inventory Contents (item, # held)"\
-                  "----------------------------------"\
-                  f"{get_inv_contents(ctx.author.id)}"
-        await ctx.respond(out_str)
-
 
 def create_char(user_id: str, name: str, c_name: str) -> character.Character:
     """
@@ -231,7 +221,7 @@ def create_char(user_id: str, name: str, c_name: str) -> character.Character:
 
     name        The name for the new character
 
-    c_name      The new character's class. For a list of classes see 
+    c_name      The new character's class. For a list of classes see
                     `config.data['classes']`
     """
     dir_path, char_file = get_paths(user_id, name)
@@ -246,7 +236,6 @@ def create_char(user_id: str, name: str, c_name: str) -> character.Character:
         raise ValueError("Too many characters!")
     try:
         if os.path.isfile(char_file):
-            print("loaded char")
             with open(char_file, 'rb') as f:
                 loaded_char = pickle.load(f)
                 f.close()
@@ -351,7 +340,7 @@ def del_char(user_id: str, char: str) -> character.Character:
 def load_char(user_id: str, name: str) -> character.Character:
     """
     Load a character.
-    
+
     Attempt to load a character from the file structure. Data
     directories are specified in `config.data` A `character.Character` object
     is returned upon success.
@@ -474,25 +463,6 @@ def get_class(name: str) -> character.bt_Class:
             raise TypeError("invalid class")
 
 
-def get_inv_contents(user_id: str) -> str:
-    """
-    Return a string with inventory contents and the # of each item.
-
-    Inspects the inventory contents for the user's active character and returns
-    them as a string 'item name, item count'
-
-    Parameters
-    ----------
-    user_id     The user's Discord ID (eg ctx.author.id
-    """
-    active_char = get_active(user_id)
-    count = Counter(active_char.inventory)
-    out_str = ""
-    for v in count.keys():
-        out_str += f"{v.name}, {count[v]}\n"
-    return out_str[0:len(out_str)-1]
-
-
 def get_paths(user_id: str, name: str):
     """
     Build the paths for the application's data directories.
@@ -518,8 +488,3 @@ def get_paths(user_id: str, name: str):
     dir_path = f"./{config.data['data_dir']}/{config.data['char_dir']}/{user_id}"
     char_file = f"{dir_path}/{name}.{config.data['file_ext']}"
     return (dir_path, char_file)
-
-
-def setup(bot):
-    """Unused"""
-    bot.add_cog(character_Commands(bot))

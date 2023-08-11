@@ -1,9 +1,13 @@
-import discord
+import os
+
 import admin
 import char_cmds
 import config
-import os
+import discord
+import fishing_cmds
+import inventory_cmds
 from discord.ext import commands
+
 # from dotenv import dotenv_values
 
 intents = discord.Intents(messages=True, presences=True, guilds=True,
@@ -49,39 +53,8 @@ async def on_ready():
 async def on_guild_join(guild):
     pass
 
-
-@bot.slash_command(
-    aliases=["cg-menu", "craig-game-menu"]
-)
-async def menu(ctx):
-    await ctx.respond("Please do the needful", view=gameMenuView())
-
-
-class gameMenuView(discord.ui.View):
-
-    @discord.ui.select(
-        placeholder="Welcome to Craig RPG!",
-        min_values=1,
-        max_values=1,
-        options=[
-            discord.SelectOption(
-                label="Characters",
-                description='View and manage your characters.'
-            ),
-            discord.SelectOption(
-                label="Adventure",
-                description="Go on an adventure. Earn some exp, and find some loot!"
-            ),
-            discord.SelectOption(
-                label="Other",
-                description="This is a third option (NYI)."
-            )
-        ]
-    )
-    async def select_callback(self, select, interaction):
-        await interaction.response.send_message("very cool")
-
-
-bot.add_cog(admin.admin_Commands(bot))
-bot.add_cog(char_cmds.character_Commands(bot))
+bot.add_cog(admin.adminCommands(bot))
+bot.add_cog(char_cmds.characterCommands(bot))
+bot.add_cog(inventory_cmds.inventoryCommands(bot))
+bot.add_cog(fishing_cmds.Fishing(bot))
 bot.run(config.data['envs']['DISCORD_TOKEN'])
