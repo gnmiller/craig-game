@@ -6,6 +6,7 @@
 
     - Move fishing sell to inventory commands
     - equipping items from inventory
+    - Inventory listing as a table for better readability
 
 ## [0.0.1] - 2023-08-11
 

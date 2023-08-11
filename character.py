@@ -370,8 +370,6 @@ class Level:
         return math.ceil(y)
 
     def check_next(self):
-        print(self.exp)
-        print(self.get_next())
         return self.exp > self.get_next()
 
     @property
